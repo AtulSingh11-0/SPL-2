@@ -74,7 +74,7 @@ public class AuctionService {
     );
 
     @Transactional
-    public void initializeAuction() {
+    public int initializeAuction() {
         // Clear existing auction entries
         auctionEntryRepository.deleteAll();
 
@@ -106,6 +106,7 @@ public class AuctionService {
 
         // Persist auction entries with sequential orderIndex
         int idx = 1;
+        int created = 0;
         for (Player p : ordered) {
             AuctionEntry entry = AuctionEntry.builder()
                     .player(p)
@@ -113,6 +114,7 @@ public class AuctionService {
                     .category(p.getRole())
                     .build();
             auctionEntryRepository.save(entry);
+            created++;
         }
 
         // Initialize auction state
@@ -120,10 +122,11 @@ public class AuctionService {
         AuctionState state = AuctionState.builder()
                 .currentCategory(ROLE_PRIORITY.get(0))
                 .categoryIndex(0)
-                .auctionActive(false)
+                .auctionActive(true)
                 .categoryStartTime(LocalDateTime.now())
                 .build();
         auctionStateRepository.save(state);
+        return created;
     }
 
     @Transactional
@@ -263,6 +266,20 @@ public class AuctionService {
     // Return the configured auction categories
     public List<String> getAuctionCategories() {
         return AUCTION_CATEGORIES;
+    }
+
+    // Return ordered auction entries with player DTOs and orderIndex
+    public List<java.util.Map<String, Object>> getAuctionEntries() {
+        List<com.example.spl2.entity.AuctionEntry> entries = auctionEntryRepository.findAllByOrderByOrderIndexAsc();
+        List<java.util.Map<String, Object>> result = new ArrayList<>();
+        for (com.example.spl2.entity.AuctionEntry e : entries) {
+            java.util.Map<String, Object> m = new java.util.HashMap<>();
+            m.put("orderIndex", e.getOrderIndex());
+            m.put("category", e.getCategory());
+            m.put("player", playerService.convertPlayerToDTO(e.getPlayer()));
+            result.add(m);
+        }
+        return result;
     }
 
     // Move to next category and return next player

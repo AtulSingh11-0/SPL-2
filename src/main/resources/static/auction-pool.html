@@ -58,10 +58,10 @@
         async function loadAuctionPool() {
             try {
                 // Load registered and unsold players - these are in the auction pool
-                const registeredRes = await fetch('/players?status=REGISTERED');
+                const registeredRes = await fetch('/api/players?status=REGISTERED');
                 const registeredPlayers = await registeredRes.json();
 
-                const unsoldRes = await fetch('/players?status=UNSOLD');
+                const unsoldRes = await fetch('/api/players?status=UNSOLD');
                 const unsoldPlayers = await unsoldRes.json();
 
                 // Combine both arrays

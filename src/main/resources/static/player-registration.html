@@ -193,7 +193,7 @@
         async function deleteAllRegistered() {
             if (!confirm('Are you sure you want to DELETE ALL registered players? This cannot be undone.')) return;
             try {
-                const resp = await fetch('/players?status=REGISTERED', { method: 'DELETE' });
+                const resp = await fetch('/api/players?status=REGISTERED', { method: 'DELETE' });
                 if (resp.ok) {
                     const json = await resp.json();
                     showSyncMessage(`✅ Deleted ${json.deleted || 'ALL'} registered players`, 'success');

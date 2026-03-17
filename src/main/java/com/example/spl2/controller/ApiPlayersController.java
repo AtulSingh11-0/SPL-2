@@ -41,6 +41,12 @@ public class ApiPlayersController {
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteById(@PathVariable Long id) {
+        playerService.deletePlayer(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @DeleteMapping
     public ResponseEntity<Map<String, Object>> delete(@RequestParam(required = false) String status) {
         if (status != null && !status.isBlank()) {

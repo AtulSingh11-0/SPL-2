@@ -20,8 +20,12 @@ public class ApiAuctionController {
 
     @PostMapping("/initialize")
     public ResponseEntity<String> initializeAuction() {
-        auctionService.initializeAuction();
-        return new ResponseEntity<>("Auction initialized", HttpStatus.OK);
+        try {
+            int created = auctionService.initializeAuction();
+            return new ResponseEntity<>(java.util.Map.of("createdEntries", created), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(java.util.Map.of("error", e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @GetMapping("/next-player")

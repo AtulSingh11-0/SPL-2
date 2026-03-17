@@ -60,7 +60,7 @@
     <script>
         async function loadSoldPlayers() {
             try {
-                const response = await fetch('/players?status=SOLD');
+                const response = await fetch('/api/players?status=SOLD');
                 const players = await response.json();
 
                 const container = document.getElementById('playersContainer');

@@ -57,6 +57,22 @@
                             <span class="value" id="playerAge">-</span>
                         </div>
                         <div class="detail-item">
+                            <span class="label">Date of Birth:</span>
+                            <span class="value" id="playerDob">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Batting Type:</span>
+                            <span class="value" id="playerBatting">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Bowling Type:</span>
+                            <span class="value" id="playerBowling">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Category:</span>
+                            <span class="value" id="playerCategory">-</span>
+                        </div>
+                        <div class="detail-item">
                             <span class="label">Base Price:</span>
                             <span class="value" id="basePrice">-</span>
                         </div>
@@ -112,6 +128,14 @@
                     <h4>Unsold Players</h4>
                     <p id="unsold-count" class="stat-value">0</p>
                 </div>
+            </div>
+        </div>
+
+        <!-- Auction Queue Section -->
+        <div class="auction-queue-section">
+            <h3>Auction Queue (Order)</h3>
+            <div id="auctionEntries" style="max-height:300px; overflow:auto; background:white; padding:1rem; border-radius:8px;">
+                <p>Loading auction entries...</p>
             </div>
         </div>
 
@@ -224,7 +248,11 @@
             document.getElementById('playerName').textContent = player.playerName;
             document.getElementById('playerRole').textContent = player.role;
             document.getElementById('playerAge').textContent = player.age;
-            document.getElementById('basePrice').textContent = '₹' + player.basePrice.toLocaleString('en-IN');
+                            document.getElementById('basePrice').textContent = '₹' + player.basePrice.toLocaleString('en-IN');
+                            document.getElementById('playerDob').textContent = player.dateOfBirth || '-';
+                            document.getElementById('playerBatting').textContent = player.battingType || '-';
+                            document.getElementById('playerBowling').textContent = player.bowlingType || '-';
+                            document.getElementById('playerCategory').textContent = player.category || '-';
             document.getElementById('currentPlayerSection').style.display = 'block';
             document.getElementById('bidAmount').value = player.basePrice;
 
@@ -335,6 +363,9 @@
                 // Update sold table
                 updateSoldTable(soldPlayers);
 
+                // Load auction entries
+                loadAuctionEntries();
+
             } catch (error) {
                 console.error('Error loading stats', error);
             }
@@ -378,6 +409,30 @@
                     <td><span class="status-badge status-SOLD">Sold</span></td>
                 </tr>
             `).join('');
+        }
+
+        async function loadAuctionEntries() {
+            try {
+                const res = await fetch('/api/auction/entries');
+                const entries = await res.json();
+                const div = document.getElementById('auctionEntries');
+                if (!entries || entries.length === 0) {
+                    div.innerHTML = '<p>No auction entries</p>';
+                    return;
+                }
+                div.innerHTML = entries.map(e => {
+                    const p = e.player;
+                    return `<div style="padding:8px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;">
+                        <div>
+                            <strong>(${e.orderIndex}) ${p.playerName}</strong><br>
+                            <small>${p.role} • ${p.age} yrs • ${p.category || ''}</small>
+                        </div>
+                        <div>₹${(p.basePrice||0).toLocaleString('en-IN')}</div>
+                    </div>`;
+                }).join('');
+            } catch (err) {
+                console.error('Error loading auction entries', err);
+            }
         }
 
         function switchTab(tabName) {
