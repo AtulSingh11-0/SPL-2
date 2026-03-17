@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auction - Cricket Auction</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="logo">🏏 Cricket Auction</h1>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="add-team.html">Add Team</a></li>
+                <li><a href="team-management.html">Navigate Teams</a></li>
+                <li><a href="auction.html" class="active">Auction</a></li>
+                <li><a href="player-registration.html">Register Player</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Auction Control Section -->
+        <div class="auction-control-section">
+            <h2>Live Auction</h2>
+            <div class="auction-controls">
+                <button id="initAuctionBtn" class="btn btn-primary">Initialize Auction</button>
+                <button id="nextPlayerBtn" class="btn btn-secondary" disabled>Next Player</button>
+            </div>
+
+            <div id="auctionStatus" class="auction-status-bar">
+                <div class="status-item">
+                    <span class="label">Auction Status:</span>
+                    <span id="statusText" class="value">Not Started</span>
+                </div>
+                <div class="status-item">
+                    <span class="label">Current Category:</span>
+                    <span id="categoryText" class="value">N/A</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Current Player Card Section -->
+        <div id="currentPlayerSection" class="current-player-container" style="display: none;">
+            <div class="player-card-wrapper">
+                <!-- Player Card -->
+                <div class="player-card">
+                    <div class="player-header">
+                        <h3 id="playerName" class="player-name">-</h3>
+                        <span class="player-role" id="playerRole">-</span>
+                    </div>
+
+                    <div class="player-details">
+                        <div class="detail-item">
+                            <span class="label">Age:</span>
+                            <span class="value" id="playerAge">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Base Price:</span>
+                            <span class="value" id="basePrice">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bidding Form -->
+                <div class="bidding-panel">
+                    <h3>Place Your Bid</h3>
+
+                    <div class="form-group">
+                        <label for="teamSelect">Select Team <span class="required">*</span></label>
+                        <select id="teamSelect" class="form-control">
+                            <option value="">-- Choose Team --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bidAmount">Bid Amount (₹) <span class="required">*</span></label>
+                        <input type="number" id="bidAmount" class="form-control" placeholder="Enter bid amount" min="0" step="100000">
+                    </div>
+
+                    <div class="bid-actions">
+                        <button id="bidBtn" class="btn btn-success" onclick="placeBid()">
+                            <span class="icon">✓</span> Sold
+                        </button>
+                        <button id="unsoldBtn" class="btn btn-danger" onclick="markUnsold()">
+                            <span class="icon">✗</span> Unsold
+                        </button>
+                        <button id="nextPlayerBtnInSection" class="btn btn-info" onclick="getNextPlayer()">
+                            <span class="icon">→</span> Next Player
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="message" class="message"></div>
+        </div>
+
+        <!-- Statistics Section -->
+        <div class="auction-stats-section">
+            <h3>Auction Progress</h3>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <h4>Registered Players</h4>
+                    <p id="registered-count" class="stat-value">0</p>
+                </div>
+                <div class="stat-box">
+                    <h4>Sold Players</h4>
+                    <p id="sold-count" class="stat-value">0</p>
+                </div>
+                <div class="stat-box">
+                    <h4>Unsold Players</h4>
+                    <p id="unsold-count" class="stat-value">0</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs for Unsold and Sold Players -->
+        <div class="auction-tables-section">
+            <div class="tabs">
+                <button class="tab-button active" onclick="switchTab('unsold')">Unsold Players</button>
+                <button class="tab-button" onclick="switchTab('sold')">Sold Players</button>
+            </div>
+
+            <!-- Unsold Players Table -->
+            <div id="unsold-tab" class="tab-content active">
+                <h3>Unsold Players</h3>
+                <div id="unsoldTable" class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Player Name</th>
+                                <th>Age</th>
+                                <th>Role</th>
+                                <th>Base Price</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="unsold-tbody">
+                            <tr><td colspan="5" class="no-data">No unsold players yet</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Sold Players Table -->
+            <div id="sold-tab" class="tab-content">
+                <h3>Sold Players</h3>
+                <div id="soldTable" class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Player Name</th>
+                                <th>Age</th>
+                                <th>Role</th>
+                                <th>Base Price</th>
+                                <th>Sold Price</th>
+                                <th>Sold To (Team)</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sold-tbody">
+                            <tr><td colspan="7" class="no-data">No sold players yet</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Cricket Auction Management System. All rights reserved.</p>
+    </footer>
+
+    <script src="js/script.js"></script>
+    <script>
+        let currentPlayerId = null;
+
+        document.getElementById('initAuctionBtn').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/auction/initialize', { method: 'POST' });
+                if (response.ok) {
+                    showMessage('Auction initialized successfully!', 'success');
+                    document.getElementById('nextPlayerBtn').disabled = false;
+                    loadTeams();
+                    loadAuctionStatus();
+                    loadStats();
+                } else {
+                    showMessage('Error initializing auction', 'error');
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        });
+
+        document.getElementById('nextPlayerBtn').addEventListener('click', getNextPlayer);
+
+        async function getNextPlayer() {
+            try {
+                const response = await fetch('/api/auction/next-player');
+
+                if (response.status === 204) {
+                    showMessage('Auction Complete! All players have been auctioned.', 'success');
+                    document.getElementById('currentPlayerSection').style.display = 'none';
+                    return;
+                }
+
+                const player = await response.json();
+                if (player) {
+                    displayPlayer(player);
+                    loadAuctionStatus();
+                    loadStats();
+                } else {
+                    showMessage('No more players to auction', 'info');
+                    document.getElementById('currentPlayerSection').style.display = 'none';
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+
+        function displayPlayer(player) {
+            currentPlayerId = player.id;
+            document.getElementById('playerName').textContent = player.playerName;
+            document.getElementById('playerRole').textContent = player.role;
+            document.getElementById('playerAge').textContent = player.age;
+            document.getElementById('basePrice').textContent = '₹' + player.basePrice.toLocaleString('en-IN');
+            document.getElementById('currentPlayerSection').style.display = 'block';
+            document.getElementById('bidAmount').value = player.basePrice;
+
+            // Scroll to player card
+            document.getElementById('currentPlayerSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function loadTeams() {
+            try {
+                const response = await fetch('/api/teams');
+                const teams = await response.json();
+                const select = document.getElementById('teamSelect');
+                select.innerHTML = '<option value="">-- Choose Team --</option>';
+
+                teams.forEach(team => {
+                    const option = document.createElement('option');
+                    option.value = team.id;
+                    option.textContent = `${team.teamName} (₹${team.remainingBudget.toLocaleString('en-IN')})`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading teams', error);
+            }
+        }
+
+        async function placeBid() {
+            const teamId = document.getElementById('teamSelect').value;
+            const bidAmount = parseFloat(document.getElementById('bidAmount').value);
+
+            if (!teamId) {
+                showMessage('Please select a team', 'error');
+                return;
+            }
+
+            if (!bidAmount || bidAmount <= 0) {
+                showMessage('Please enter a valid bid amount', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/auction/sell-player/${currentPlayerId}?teamId=${teamId}&soldPrice=${bidAmount}`, {
+                    method: 'POST'
+                });
+
+                if (response.ok) {
+                    showMessage('Player sold successfully!', 'success');
+                    loadTeams();
+                    loadStats();
+                    setTimeout(() => getNextPlayer(), 1500);
+                } else {
+                    const error = await response.json();
+                    showMessage('Error: ' + error.message, 'error');
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+
+        async function markUnsold() {
+            try {
+                const response = await fetch(`/api/auction/unsold-player/${currentPlayerId}`, {
+                    method: 'POST'
+                });
+
+                if (response.ok) {
+                    showMessage('Player marked as unsold', 'info');
+                    loadStats();
+                    setTimeout(() => getNextPlayer(), 1500);
+                } else {
+                    showMessage('Error marking player as unsold', 'error');
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+
+        async function loadAuctionStatus() {
+            try {
+                const response = await fetch('/api/auction/status');
+                const status = await response.json();
+
+                document.getElementById('statusText').textContent = status.auctionActive ? 'Active' : 'Paused';
+                document.getElementById('categoryText').textContent = status.currentCategory;
+            } catch (error) {
+                console.error('Error loading auction status', error);
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const registeredRes = await fetch('/api/players?status=REGISTERED');
+                const registeredPlayers = await registeredRes.json();
+
+                const soldRes = await fetch('/api/players?status=SOLD');
+                const soldPlayers = await soldRes.json();
+
+                const unsoldRes = await fetch('/api/players?status=UNSOLD');
+                const unsoldPlayers = await unsoldRes.json();
+
+                // Update stats
+                document.getElementById('registered-count').textContent = registeredPlayers.length;
+                document.getElementById('sold-count').textContent = soldPlayers.length;
+                document.getElementById('unsold-count').textContent = unsoldPlayers.length;
+
+                // Update unsold table
+                updateUnsoldTable(unsoldPlayers);
+
+                // Update sold table
+                updateSoldTable(soldPlayers);
+
+            } catch (error) {
+                console.error('Error loading stats', error);
+            }
+        }
+
+        function updateUnsoldTable(unsoldPlayers) {
+            const tbody = document.getElementById('unsold-tbody');
+
+            if (unsoldPlayers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="no-data">No unsold players yet</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = unsoldPlayers.map(player => `
+                <tr>
+                    <td>${player.playerName}</td>
+                    <td>${player.age}</td>
+                    <td>${player.role}</td>
+                    <td>₹${player.basePrice.toLocaleString('en-IN')}</td>
+                    <td><span class="status-badge status-UNSOLD">Unsold</span></td>
+                </tr>
+            `).join('');
+        }
+
+        function updateSoldTable(soldPlayers) {
+            const tbody = document.getElementById('sold-tbody');
+
+            if (soldPlayers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="no-data">No sold players yet</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = soldPlayers.map(player => `
+                <tr>
+                    <td>${player.playerName}</td>
+                    <td>${player.age}</td>
+                    <td>${player.role}</td>
+                    <td>₹${player.basePrice.toLocaleString('en-IN')}</td>
+                    <td>₹${player.soldPrice.toLocaleString('en-IN')}</td>
+                    <td>${player.teamName || 'N/A'}</td>
+                    <td><span class="status-badge status-SOLD">Sold</span></td>
+                </tr>
+            `).join('');
+        }
+
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.getElementById('unsold-tab').classList.remove('active');
+            document.getElementById('sold-tab').classList.remove('active');
+
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+
+            // Show selected tab and mark button as active
+            if (tabName === 'unsold') {
+                document.getElementById('unsold-tab').classList.add('active');
+                event.target.classList.add('active');
+            } else {
+                document.getElementById('sold-tab').classList.add('active');
+                event.target.classList.add('active');
+            }
+        }
+
+        function showMessage(msg, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.className = 'message';
+            messageDiv.textContent = msg;
+            messageDiv.classList.add(type);
+            setTimeout(() => {
+                messageDiv.textContent = '';
+            }, 3000);
+        }
+
+        // Load initial data
+        window.addEventListener('load', () => {
+            loadTeams();
+            loadAuctionStatus();
+            loadStats();
+        });
+
+        // Refresh stats every 3 seconds
+        setInterval(() => {
+            loadStats();
+        }, 3000);
+    </script>
+</body>
+</html>
+

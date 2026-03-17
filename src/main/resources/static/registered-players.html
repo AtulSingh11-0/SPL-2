@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registered Players - Cricket Auction</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .players-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+        .players-count { font-size: 1.5rem; color: #ffff00; font-weight: bold; background: rgba(0, 0, 0, 0.3); padding: 1rem 2rem; border-radius: 10px; }
+        .action-buttons { display: flex; gap: 1rem; flex-wrap: wrap; }
+        .btn-delete-all { background: #d32f2f; padding: 1rem 2rem; border: none; color: white; border-radius: 8px; font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: all 0.3s; }
+        .btn-delete-all:hover { background: #ff1744; transform: scale(1.05); box-shadow: 0 5px 20px rgba(211, 47, 47, 0.4); }
+        .players-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 2rem; margin: 2rem 0; }
+        .player-card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); border-left: 6px solid #2196f3; transition: all 0.3s; }
+        .player-card:hover { transform: translateY(-10px); box-shadow: 0 8px 30px rgba(0,0,0,0.3); }
+        .player-name { font-size: 1.8rem; color: #0a4c0a; font-weight: bold; margin-bottom: 1rem; }
+        .player-info { margin: 0.8rem 0; font-size: 1.1rem; color: #333; }
+        .player-label { font-weight: bold; color: #0a4c0a; }
+        .player-value { color: #555; }
+        .card-actions { display: flex; gap: 1rem; margin-top: 1.5rem; }
+        .btn-delete-single { background: #d32f2f; padding: 0.8rem 1.5rem; border: none; color: white; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: all 0.3s; flex: 1; }
+        .btn-delete-single:hover { background: #ff1744; transform: scale(1.05); }
+        .btn-edit { background: #ff9800; padding: 0.8rem 1.5rem; border: none; color: white; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: all 0.3s; flex: 1; }
+        .btn-edit:hover { background: #ffb74d; transform: scale(1.05); }
+        .no-players { text-align: center; padding: 3rem; font-size: 1.5rem; color: #ffff00; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="logo">🏏 CRICKET AUCTION - REGISTERED PLAYERS</h1>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="players-dashboard.html">📊 Dashboard</a></li>
+                <li><a href="registered-players.html" class="active">👤 Registered</a></li>
+                <li><a href="auction-pool.html">🎯 Auction Pool</a></li>
+                <li><a href="sold-players.html">✅ Sold</a></li>
+                <li><a href="unsold-players.html">❌ Unsold</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h2 style="font-size: 2.8rem; margin-bottom: 1rem;">👤 REGISTERED PLAYERS</h2>
+        <p style="font-size: 1.3rem; color: #ffff00; text-align: center; font-weight: bold; background: linear-gradient(135deg, #2196f3 0%, #42a5f5 100%); padding: 1.5rem; border-radius: 10px; margin-bottom: 2rem;">All players ready for auction</p>
+
+        <div class="players-header">
+            <div class="players-count">
+                Total: <span id="playerCount">0</span> Players
+            </div>
+            <div class="action-buttons">
+                <button class="btn-delete-all" onclick="deleteAllPlayers()">🗑️ DELETE ALL PLAYERS</button>
+            </div>
+        </div>
+
+        <div id="playersContainer" class="players-grid">
+            <p class="no-players">Loading registered players...</p>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Cricket Auction Management System. All rights reserved.</p>
+    </footer>
+
+    <script>
+        async function loadRegisteredPlayers() {
+            try {
+                const response = await fetch('/players?status=REGISTERED');
+                const players = await response.json();
+
+                const container = document.getElementById('playersContainer');
+
+                if (!players || players.length === 0) {
+                    container.innerHTML = '<p class="no-players">No registered players found</p>';
+                    document.getElementById('playerCount').textContent = '0';
+                    return;
+                }
+
+                document.getElementById('playerCount').textContent = players.length;
+
+                container.innerHTML = players.map(player => `
+                    <div class="player-card">
+                        <div class="player-name">${player.playerName}</div>
+                        <div class="player-info">
+                            <span class="player-label">Age:</span>
+                            <span class="player-value">${player.age}</span>
+                        </div>
+                        <div class="player-info">
+                            <span class="player-label">Role:</span>
+                            <span class="player-value">${player.role}</span>
+                        </div>
+                        <div class="player-info">
+                            <span class="player-label">Batting Type:</span>
+                            <span class="player-value">${player.battingType || 'N/A'}</span>
+                        </div>
+                        <div class="player-info">
+                            <span class="player-label">Bowling Type:</span>
+                            <span class="player-value">${player.bowlingType || 'N/A'}</span>
+                        </div>
+                        <div class="player-info">
+                            <span class="player-label">Category:</span>
+                            <span class="player-value">${player.category || 'N/A'}</span>
+                        </div>
+                        <div class="player-info">
+                            <span class="player-label">Base Price:</span>
+                            <span class="player-value">₹${player.basePrice || 0}</span>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn-delete-single" onclick="deletePlayer(${player.id})">🗑️ Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                console.error('Error loading registered players:', error);
+                document.getElementById('playersContainer').innerHTML = '<p class="no-players">Error loading players</p>';
+            }
+        }
+
+        async function deletePlayer(playerId) {
+            if (!confirm('Are you sure you want to delete this player?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/players/${playerId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    alert('Player deleted successfully');
+                    loadRegisteredPlayers();
+                } else {
+                    alert('Error deleting player');
+                }
+            } catch (error) {
+                console.error('Error deleting player:', error);
+                alert('Error deleting player');
+            }
+        }
+
+        async function deleteAllPlayers() {
+            if (!confirm('⚠️ WARNING: This will delete ALL registered players! Are you absolutely sure?')) {
+                return;
+            }
+
+            if (!confirm('This action cannot be undone. Click OK again to confirm.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/players?status=REGISTERED');
+                const players = await response.json();
+
+                let deleted = 0;
+                for (const player of players) {
+                    try {
+                        await fetch(`/players/${player.id}`, {
+                            method: 'DELETE'
+                        });
+                        deleted++;
+                    } catch (error) {
+                        console.error(`Error deleting player ${player.id}:`, error);
+                    }
+                }
+
+                alert(`Successfully deleted ${deleted} players`);
+                loadRegisteredPlayers();
+            } catch (error) {
+                console.error('Error deleting players:', error);
+                alert('Error deleting players');
+            }
+        }
+
+        // Load players on page load
+        window.addEventListener('load', loadRegisteredPlayers);
+        // Auto-refresh every 5 seconds
+        setInterval(loadRegisteredPlayers, 5000);
+    </script>
+</body>
+</html>
+

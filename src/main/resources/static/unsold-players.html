@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unsold Players - Cricket Auction</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .players-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+        .players-count { font-size: 1.5rem; color: #ffff00; font-weight: bold; background: rgba(0, 0, 0, 0.3); padding: 1rem 2rem; border-radius: 10px; }
+        .players-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 2rem; margin: 2rem 0; }
+        .player-card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); border-left: 6px solid #d32f2f; transition: all 0.3s; }
+        .player-card:hover { transform: translateY(-10px); box-shadow: 0 8px 30px rgba(0,0,0,0.3); }
+        .player-name { font-size: 1.8rem; color: #0a4c0a; font-weight: bold; margin-bottom: 1rem; }
+        .player-info { margin: 0.8rem 0; font-size: 1.1rem; color: #333; }
+        .player-label { font-weight: bold; color: #0a4c0a; }
+        .player-value { color: #555; }
+        .status-badge { font-size: 1.3rem; color: white; font-weight: bold; background: #d32f2f; padding: 1rem; border-radius: 8px; margin: 1rem 0; text-align: center; }
+        .base-price { font-size: 1.2rem; color: #ff9800; font-weight: bold; margin: 1rem 0; }
+        .no-players { text-align: center; padding: 3rem; font-size: 1.5rem; color: #ffff00; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="logo">🏏 CRICKET AUCTION - UNSOLD PLAYERS</h1>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="players-dashboard.html">📊 Dashboard</a></li>
+                <li><a href="registered-players.html">👤 Registered</a></li>
+                <li><a href="auction-pool.html">🎯 Auction Pool</a></li>
+                <li><a href="sold-players.html">✅ Sold</a></li>
+                <li><a href="unsold-players.html" class="active">❌ Unsold</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h2 style="font-size: 2.8rem; margin-bottom: 1rem;">❌ UNSOLD PLAYERS</h2>
+        <p style="font-size: 1.3rem; color: #ffff00; text-align: center; font-weight: bold; background: linear-gradient(135deg, #d32f2f 0%, #ff1744 100%); padding: 1.5rem; border-radius: 10px; margin-bottom: 2rem;">Players not yet purchased in auction</p>
+
+        <div class="players-header">
+            <div class="players-count">
+                Total Unsold: <span id="playerCount">0</span> Players
+            </div>
+        </div>
+
+        <div id="playersContainer" class="players-grid">
+            <p class="no-players">Loading unsold players...</p>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Cricket Auction Management System. All rights reserved.</p>
+    </footer>
+
+    <script>
+        async function loadUnsoldPlayers() {
+            try {
+                const response = await fetch('/players?status=UNSOLD');
+                const players = await response.json();
+
+                const container = document.getElementById('playersContainer');
+
+                if (!players || players.length === 0) {
+                    container.innerHTML = '<p class="no-players">No unsold players</p>';
+                    document.getElementById('playerCount').textContent = '0';
+                    return;
+                }
+
+                document.getElementById('playerCount').textContent = players.length;
+
+                container.innerHTML = players.map(player => `
+                    <div class="player-card">
+                        <div class="player-name">${player.playerName}</div>
+                        <div class="status-badge">❌ UNSOLD</div>
+                        <div class="player-info">
+                            <span class="player-label">Age:</span>
+                            <span class="player-value">${player.age}</span>
+                        </div>
+                        <div class="player-info">
+                            <span class="player-label">Role:</span>
+                            <span class="player-value">${player.role}</span>
+                        </div>
+                        <div class="player-info">
+                            <span class="player-label">Batting Type:</span>
+                            <span class="player-value">${player.battingType || 'N/A'}</span>
+                        </div>
+                        <div class="player-info">
+                            <span class="player-label">Bowling Type:</span>
+                            <span class="player-value">${player.bowlingType || 'N/A'}</span>
+                        </div>
+                        <div class="base-price">Base Price: ₹${(player.basePrice || 0).toLocaleString('en-IN')}</div>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                console.error('Error loading unsold players:', error);
+                document.getElementById('playersContainer').innerHTML = '<p class="no-players">Error loading players</p>';
+            }
+        }
+
+        // Load players on page load
+        window.addEventListener('load', loadUnsoldPlayers);
+        // Auto-refresh every 5 seconds
+        setInterval(loadUnsoldPlayers, 5000);
+    </script>
+</body>
+</html>
+

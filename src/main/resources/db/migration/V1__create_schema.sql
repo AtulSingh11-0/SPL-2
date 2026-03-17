@@ -1,0 +1,53 @@
+-- Flyway V1: create core tables for SPL Auction
+
+CREATE TABLE IF NOT EXISTS teams (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  team_name VARCHAR(200) NOT NULL UNIQUE,
+  captain VARCHAR(200) NOT NULL,
+  total_budget DOUBLE NOT NULL,
+  remaining_budget DOUBLE NOT NULL,
+  player_retention1 VARCHAR(200),
+  player_retention2 VARCHAR(200),
+  player_retention1_money DOUBLE,
+  player_retention2_money DOUBLE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS players (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  player_name VARCHAR(200) NOT NULL,
+  age INT NOT NULL,
+  role VARCHAR(100) NOT NULL,
+  base_price DOUBLE NOT NULL,
+  status VARCHAR(50) NOT NULL,
+  team_id BIGINT,
+  sold_price DOUBLE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS auction_state (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  current_category VARCHAR(200) NOT NULL,
+  category_index INT NOT NULL,
+  current_player_id BIGINT,
+  auction_active BOOLEAN NOT NULL,
+  category_start_time TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (current_player_id) REFERENCES players(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS bids (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  player_id BIGINT NOT NULL,
+  team_id BIGINT NOT NULL,
+  bid_amount DOUBLE NOT NULL,
+  is_winning BOOLEAN NOT NULL,
+  bid_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE,
+  FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE
+);
+

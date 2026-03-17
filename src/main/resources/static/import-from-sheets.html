@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Import Players - Cricket Auction</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+All of the sal Clear through a different network component All of the Unsold player through a different number component and all of the player who is remaining to sold or answered that means after clicking on start auction table button all of the data present in the register database will be stored in a particular sequence in another database you have to Present the all of the data in that database also that means I want to see all of this database data from tent only through website             <h1 class="logo">🏏 CRICKET AUCTION</h1>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="add-team.html">Add Team</a></li>
+                <li><a href="team-management.html">Navigate Teams</a></li>
+                <li><a href="auction.html">Auction</a></li>
+                <li><a href="player-registration.html">Register Player</a></li>
+                <li><a href="import-from-sheets.html" class="active">Import Players</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="form-section">
+            <h2>🎯 IMPORT PLAYERS FROM CSV</h2>
+            <p style="font-size: 1.3rem; color: #ffff00; text-align: center; font-weight: bold;">Upload your player data file and add all players to the system</p>
+
+            <!-- Tab Navigation: CSV is primary -->
+            <div class="import-tabs" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 2rem 0;">
+                <button class="tab-btn active" onclick="switchImportTab('csv', this)" style="padding: 1.2rem; font-size: 1.1rem; font-weight: bold;">📊 Import CSV</button>
+                <button class="tab-btn" onclick="switchImportTab('excel', this)" style="padding: 1.2rem; font-size: 1.1rem; font-weight: bold;">📈 Import Excel</button>
+                <button class="tab-btn" onclick="switchImportTab('url', this)" style="padding: 1.2rem; font-size: 1.1rem; font-weight: bold;">🌐 Import from URL</button>
+                <button class="tab-btn" onclick="switchImportTab('id', this)" style="padding: 1.2rem; font-size: 1.1rem; font-weight: bold;">🔑 Import from ID</button>
+            </div>
+
+            <!-- CSV Upload Tab (default active) -->
+            <div id="csv-tab" class="import-tab active" style="display: block;">
+                <div class="form" style="background: rgba(255, 255, 255, 0.98); padding: 3rem;">
+                    <h3 style="font-size: 2rem; text-align: center;">📥 Upload CSV File</h3>
+                    <div class="form-group">
+                        <label for="csvFile" style="font-size: 1.3rem;">Select CSV File (.csv)</label>
+                        <input type="file" id="csvFile" accept=".csv" style="padding: 1.2rem; font-size: 1.1rem;">
+                        <small class="help-text" style="font-size: 1.1rem; color: #0a4c0a; font-weight: bold;">Format: Name, Date Of Birth, Age, Role, Batting Type, Bowling Type, Image, Category</small>
+                    </div>
+                    <button class="btn btn-primary btn-large" onclick="importFromCSV()" style="width: 100%; font-size: 1.5rem; padding: 1.5rem;">⬆️ UPLOAD & IMPORT</button>
+                </div>
+            </div>
+
+            <!-- Excel Upload Tab -->
+            <div id="excel-tab" class="import-tab" style="display: none;">
+                <div class="form" style="background: rgba(255, 255, 255, 0.98); padding: 3rem;">
+                    <h3 style="font-size: 2rem; text-align: center;">📈 Upload Excel File</h3>
+                    <div class="form-group">
+                        <label for="excelFile" style="font-size: 1.3rem;">Select Excel File (.xlsx)</label>
+                        <input type="file" id="excelFile" accept=".xlsx,.xls" style="padding: 1.2rem; font-size: 1.1rem;">
+                        <small class="help-text" style="font-size: 1.1rem; color: #0a4c0a; font-weight: bold;">Format: Name, Date Of Birth, Age, Role, Batting Type, Bowling Type, Image, Category</small>
+                    </div>
+                    <button class="btn btn-primary btn-large" onclick="importFromExcel()" style="width: 100%; font-size: 1.5rem; padding: 1.5rem;">⬆️ UPLOAD & IMPORT</button>
+                </div>
+            </div>
+
+            <!-- URL Import Tab (Sheets) -->
+            <div id="url-tab" class="import-tab" style="display: none;">
+                <div class="form" style="background: rgba(255, 255, 255, 0.98); padding: 3rem;">
+                    <h3 style="font-size: 2rem; text-align: center;">🌐 Import from Google Sheets URL</h3>
+                    <div class="form-group">
+                        <label for="sheetUrl" style="font-size: 1.3rem;">Google Sheets URL</label>
+                        <input type="text" id="sheetUrl" class="form-control" placeholder="https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit#gid=0" value="" style="padding: 1.2rem; font-size: 1.1rem;">
+                        <small class="help-text" style="font-size: 1.1rem; color: #0a4c0a; font-weight: bold;">Paste your Google Sheets URL here</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="rangeUrl" style="font-size: 1.3rem;">Sheet Range (Optional)</label>
+                        <input type="text" id="rangeUrl" class="form-control" placeholder="Sheet1!A:H" value="Sheet1!A:H" style="padding: 1.2rem; font-size: 1.1rem;">
+                    </div>
+                    <button class="btn btn-primary btn-large" onclick="importFromUrl()" style="width: 100%; font-size: 1.5rem; padding: 1.5rem;">🌐 IMPORT FROM URL</button>
+                </div>
+            </div>
+
+            <!-- ID Import Tab (Sheets) -->
+            <div id="id-tab" class="import-tab" style="display: none;">
+                <div class="form" style="background: rgba(255, 255, 255, 0.98); padding: 3rem;">
+                    <h3 style="font-size: 2rem; text-align: center;">🔑 Import by Spreadsheet ID</h3>
+                    <div class="form-group">
+                        <label for="spreadsheetId" style="font-size: 1.3rem;">Spreadsheet ID</label>
+                        <input type="text" id="spreadsheetId" class="form-control" placeholder="1R7gd375x-UXpw0bfa-T2RkeM7-IoIm58uDRnhJ_wJgo" value="" style="padding: 1.2rem; font-size: 1.1rem;">
+                        <small class="help-text" style="font-size: 1.1rem; color: #0a4c0a; font-weight: bold;">Extract from URL: /d/[SPREADSHEET_ID]/edit</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="rangeId" style="font-size: 1.3rem;">Sheet Range (Optional)</label>
+                        <input type="text" id="rangeId" class="form-control" placeholder="Sheet1!A:H" value="Sheet1!A:H" style="padding: 1.2rem; font-size: 1.1rem;">
+                    </div>
+                    <button class="btn btn-primary btn-large" onclick="importFromId()" style="width: 100%; font-size: 1.5rem; padding: 1.5rem;">🔑 IMPORT FROM ID</button>
+                </div>
+            </div>
+
+            <!-- Info Section -->
+            <div class="info-section" style="background: rgba(255, 255, 255, 0.95); padding: 2.5rem; border-radius: 12px; margin-top: 3rem; border: 3px solid #1a8c1a;">
+                <h3 style="font-size: 2rem; color: #0a4c0a;">📋 CSV FILE REQUIREMENTS</h3>
+                <p style="font-size: 1.2rem; color: #0a4c0a; font-weight: bold;">Your file must contain the following columns in this exact order:</p>
+                <table class="format-table" style="width: 100%; margin: 2rem 0;">
+                    <thead>
+                        <tr>
+                            <th style="padding: 1rem; font-size: 1.1rem;">Name</th>
+                            <th style="padding: 1rem; font-size: 1.1rem;">Date Of Birth</th>
+                            <th style="padding: 1rem; font-size: 1.1rem;">Age</th>
+                            <th style="padding: 1rem; font-size: 1.1rem;">Role</th>
+                            <th style="padding: 1rem; font-size: 1.1rem;">Batting Type</th>
+                            <th style="padding: 1rem; font-size: 1.1rem;">Bowling Type</th>
+                            <th style="padding: 1rem; font-size: 1.1rem;">Image</th>
+                            <th style="padding: 1rem; font-size: 1.1rem;">Category</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="padding: 1rem; font-size: 1.1rem;"><strong>Player Name</strong></td>
+                            <td style="padding: 1rem; font-size: 1.1rem;"><strong>YYYY-MM-DD</strong></td>
+                            <td style="padding: 1rem; font-size: 1.1rem;"><strong>Number</strong></td>
+                            <td style="padding: 1rem; font-size: 1.1rem;"><strong>Role</strong></td>
+                            <td style="padding: 1rem; font-size: 1.1rem;"><strong>Type</strong></td>
+                            <td style="padding: 1rem; font-size: 1.1rem;"><strong>Type</strong></td>
+                            <td style="padding: 1rem; font-size: 1.1rem;"><strong>URL</strong></td>
+                            <td style="padding: 1rem; font-size: 1.1rem;"><strong>Category</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3 style="font-size: 2rem; color: #0a4c0a; margin-top: 2rem;">✅ VALID PLAYER ROLES</h3>
+                <ul class="roles-list" style="font-size: 1.2rem; color: #0a4c0a; line-height: 2;">
+                    <li><strong>All-rounder Bowling</strong></li>
+                    <li><strong>All-rounder Batting</strong></li>
+                    <li><strong>Only Batsman</strong></li>
+                    <li><strong>Only Bowler</strong></li>
+                    <li><strong>Wicket Keeper</strong></li>
+                </ul>
+
+                <h3 style="font-size: 2rem; color: #0a4c0a; margin-top: 2rem;">ℹ️ IMPORTANT NOTES</h3>
+                <ul class="notes-list" style="font-size: 1.2rem; color: #0a4c0a; line-height: 2;">
+                    <li><strong>✓ First row must be headers</strong></li>
+                    <li><strong>✓ ALL players will be imported (NO age restrictions)</strong></li>
+                    <li><strong>✓ Duplicate player names will be skipped</strong></li>
+                    <li><strong>✓ Missing optional fields can be left blank</strong></li>
+                    <li><strong>✓ All imported players get status: REGISTERED</strong></li>
+                    <li><strong>✓ Default Base Price: ₹500,000</strong></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Progress Section -->
+        <div id="progressSection" class="progress-section" style="display: none; background: rgba(255, 255, 255, 0.95); padding: 3rem; border-radius: 12px; margin-top: 2rem;">
+            <h3 style="font-size: 2rem; color: #0a4c0a;">⏳ IMPORT PROGRESS</h3>
+            <div class="progress-bar" style="height: 50px; background: #e0e0e0; border-radius: 10px; overflow: hidden; margin: 2rem 0;">
+                <div id="progressFill" class="progress-fill" style="height: 100%; background: linear-gradient(90deg, #1a8c1a 0%, #22b022 100%); width: 0%; transition: width 0.3s;"></div>
+            </div>
+            <p id="progressText" class="progress-text" style="font-size: 1.3rem; color: #0a4c0a; font-weight: bold; text-align: center;">Importing players...</p>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultsSection" class="results-section" style="display: none; background: rgba(255, 255, 255, 0.95); padding: 3rem; border-radius: 12px; margin-top: 2rem;">
+            <h3 style="font-size: 2.5rem; color: #0a4c0a; text-align: center;">✅ IMPORT RESULTS</h3>
+            <div class="results-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin: 2rem 0;">
+                <div class="result-item" style="background: linear-gradient(135deg, #0a4c0a 0%, #1a8c1a 100%); color: #ffff00; padding: 2rem; border-radius: 10px; text-align: center; border: 3px solid #ffff00;">
+                    <h4 style="margin-bottom: 1rem; font-size: 1.5rem;">📊 Total Processed</h4>
+                    <p id="resultTotal" class="result-number" style="font-size: 2.5rem; font-weight: bold;">0</p>
+                </div>
+                <div class="result-item success" style="background: linear-gradient(135deg, #1a8c1a 0%, #22b022 100%); color: #ffff00; padding: 2rem; border-radius: 10px; text-align: center; border: 3px solid #ffff00;">
+                    <h4 style="margin-bottom: 1rem; font-size: 1.5rem;">✅ Successfully Imported</h4>
+                    <p id="resultSaved" class="result-number" style="font-size: 2.5rem; font-weight: bold;">0</p>
+                </div>
+                <div class="result-item error" style="background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%); color: white; padding: 2rem; border-radius: 10px; text-align: center; border: 3px solid white;">
+                    <h4 style="margin-bottom: 1rem; font-size: 1.5rem;">❌ Failed</h4>
+                    <p id="resultFailed" class="result-number" style="font-size: 2.5rem; font-weight: bold;">0</p>
+                </div>
+            </div>
+            <div id="resultMessage" class="result-message" style="font-size: 1.3rem; color: #0a4c0a; padding: 2rem; background: #f0fff0; border-radius: 10px; margin: 2rem 0;"></div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem;">
+                <button class="btn btn-secondary" onclick="resetImport()" style="font-size: 1.2rem; padding: 1.2rem;">📥 IMPORT ANOTHER FILE</button>
+                <a href="player-registration.html" class="btn btn-primary" style="font-size: 1.2rem; padding: 1.2rem; text-decoration: none; text-align: center;">👁️ VIEW IMPORTED PLAYERS</a>
+            </div>
+        </div>
+
+        <!-- Message Area -->
+        <div id="message" class="message" style="margin-top: 2rem; padding: 1.5rem; font-size: 1.2rem; border-radius: 8px;"></div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Cricket Auction Management System. All rights reserved.</p>
+    </footer>
+
+    <script src="js/script.js"></script>
+    <script>
+        function switchImportTab(tabName, clickedBtn) {
+            // Hide all tabs
+            document.getElementById('csv-tab').style.display = 'none';
+            document.getElementById('excel-tab').style.display = 'none';
+            document.getElementById('url-tab').style.display = 'none';
+            document.getElementById('id-tab').style.display = 'none';
+
+            // Remove active class from buttons
+            document.querySelectorAll('.import-tabs .tab-btn').forEach(btn => {
+                btn.style.background = '';
+                btn.style.color = '';
+            });
+
+            // Show selected tab and activate button
+            if (tabName === 'csv') {
+                document.getElementById('csv-tab').style.display = 'block';
+                if (clickedBtn) {
+                    clickedBtn.style.background = 'linear-gradient(135deg, #1a8c1a 0%, #22b022 100%)';
+                    clickedBtn.style.color = '#ffff00';
+                }
+            } else if (tabName === 'excel') {
+                document.getElementById('excel-tab').style.display = 'block';
+                if (clickedBtn) {
+                    clickedBtn.style.background = 'linear-gradient(135deg, #1a8c1a 0%, #22b022 100%)';
+                    clickedBtn.style.color = '#ffff00';
+                }
+            } else if (tabName === 'url') {
+                document.getElementById('url-tab').style.display = 'block';
+                if (clickedBtn) {
+                    clickedBtn.style.background = 'linear-gradient(135deg, #1a8c1a 0%, #22b022 100%)';
+                    clickedBtn.style.color = '#ffff00';
+                }
+            } else {
+                document.getElementById('id-tab').style.display = 'block';
+                if (clickedBtn) {
+                    clickedBtn.style.background = 'linear-gradient(135deg, #1a8c1a 0%, #22b022 100%)';
+                    clickedBtn.style.color = '#ffff00';
+                }
+            }
+        }
+
+        async function importFromCSV() {
+            const fileInput = document.getElementById('csvFile');
+            if (!fileInput || fileInput.files.length === 0) {
+                showMessage('Please select a CSV file to upload', 'error');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                document.getElementById('progressSection').style.display = 'block';
+                document.getElementById('resultsSection').style.display = 'none';
+                document.getElementById('message').innerHTML = '';
+
+                const response = await fetch('/api/import/upload-csv', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    showMessage('Error: ' + (err.error || response.statusText), 'error');
+                    document.getElementById('progressSection').style.display = 'none';
+                    return;
+                }
+
+                const result = await response.json();
+
+                const normalized = {
+                    totalProcessed: result.totalProcessed || (result.newPlayers + (result.skipped || 0)),
+                    saved: result.saved || result.newPlayers || 0,
+                    failed: result.failed || 0,
+                    message: result.message || 'CSV import completed successfully'
+                };
+
+                showResults(normalized);
+                showMessage('✅ CSV IMPORT COMPLETED SUCCESSFULLY!', 'success');
+
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+                document.getElementById('progressSection').style.display = 'none';
+            }
+        }
+
+        async function importFromExcel() {
+            const fileInput = document.getElementById('excelFile');
+            if (!fileInput || fileInput.files.length === 0) {
+                showMessage('Please select an Excel file to upload', 'error');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                document.getElementById('progressSection').style.display = 'block';
+                document.getElementById('resultsSection').style.display = 'none';
+                document.getElementById('message').innerHTML = '';
+
+                const response = await fetch('/api/import/upload-excel', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    showMessage('Error: ' + (err.error || response.statusText), 'error');
+                    document.getElementById('progressSection').style.display = 'none';
+                    return;
+                }
+
+                const result = await response.json();
+
+                const normalized = {
+                    totalProcessed: result.newPlayers + (result.skipped || 0),
+                    saved: result.newPlayers || 0,
+                    failed: result.failed || 0,
+                    message: 'Excel import completed successfully'
+                };
+
+                showResults(normalized);
+                showMessage('✅ EXCEL IMPORT COMPLETED SUCCESSFULLY!', 'success');
+
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+                document.getElementById('progressSection').style.display = 'none';
+            }
+        }
+
+        async function importFromUrl() {
+            const sheetUrl = document.getElementById('sheetUrl').value.trim();
+            const range = document.getElementById('rangeUrl').value.trim() || 'Sheet1!A:H';
+
+            if (!sheetUrl) {
+                showMessage('Please enter a Google Sheets URL', 'error');
+                return;
+            }
+
+            const payload = { sheetUrl: sheetUrl, range: range };
+            await executeImport('/api/import/players-from-url', payload);
+        }
+
+        async function importFromId() {
+            const spreadsheetId = document.getElementById('spreadsheetId').value.trim();
+            const range = document.getElementById('rangeId').value.trim() || 'Sheet1!A:H';
+
+            if (!spreadsheetId) {
+                showMessage('Please enter a Spreadsheet ID', 'error');
+                return;
+            }
+
+            const payload = { spreadsheetId: spreadsheetId, range: range };
+            await executeImport('/api/import/players-from-sheets', payload);
+        }
+
+        async function executeImport(endpoint, payload) {
+            try {
+                document.getElementById('progressSection').style.display = 'block';
+                document.getElementById('resultsSection').style.display = 'none';
+                document.getElementById('message').innerHTML = '';
+
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+
+                if (response.ok) {
+                    showResults(result);
+                    showMessage('✅ IMPORT COMPLETED SUCCESSFULLY!', 'success');
+                } else {
+                    showMessage('Error: ' + (result.error || 'Unknown error'), 'error');
+                    document.getElementById('progressSection').style.display = 'none';
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+                document.getElementById('progressSection').style.display = 'none';
+            }
+        }
+
+        function showResults(result) {
+            document.getElementById('progressSection').style.display = 'none';
+            document.getElementById('resultsSection').style.display = 'block';
+
+            document.getElementById('resultTotal').textContent = result.totalProcessed;
+            document.getElementById('resultSaved').textContent = result.saved;
+            document.getElementById('resultFailed').textContent = result.failed;
+            document.getElementById('resultMessage').innerHTML = `<strong>✓ ${result.message}</strong><br>Successfully imported <strong>${result.saved}</strong> players out of <strong>${result.totalProcessed}</strong>`;
+        }
+
+        function resetImport() {
+            document.getElementById('sheetUrl').value = '';
+            document.getElementById('spreadsheetId').value = '';
+            document.getElementById('rangeUrl').value = 'Sheet1!A:H';
+            document.getElementById('rangeId').value = 'Sheet1!A:H';
+            document.getElementById('csvFile').value = '';
+            document.getElementById('excelFile').value = '';
+            document.getElementById('progressSection').style.display = 'none';
+            document.getElementById('resultsSection').style.display = 'none';
+            document.getElementById('message').innerHTML = '';
+        }
+
+        function showMessage(msg, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.className = 'message';
+            messageDiv.textContent = msg;
+            messageDiv.classList.add(type);
+            setTimeout(() => { messageDiv.innerHTML = ''; }, 5000);
+        }
+    </script>
+</body>
+</html>
+
+    <div class="container">
+        <div class="form-section">
+            <h2>Import Players</h2>
+            <p>Import player data from CSV or Excel files. All players from your file will be added to the system.</p>
+
+            <!-- Tab Navigation: CSV is primary -->
+            <div class="import-tabs">
+                <button class="tab-btn active" onclick="switchImportTab('csv', this)">Import CSV</button>
+                <button class="tab-btn" onclick="switchImportTab('excel', this)">Import Excel</button>
+                <button class="tab-btn" onclick="switchImportTab('url', this)">Import by Google Sheets URL</button>
+                <button class="tab-btn" onclick="switchImportTab('id', this)">Import by Spreadsheet ID</button>
+            </div>
+
+            <!-- CSV Upload Tab (default active) -->
+            <div id="csv-tab" class="import-tab active">
+                <div class="form">
+                    <div class="form-group">
+                        <label for="csvFile">Upload CSV File (.csv)</label>
+                        <input type="file" id="csvFile" accept=".csv" />
+                        <small class="help-text">CSV format: Name, Date Of Birth, Age, Role, Batting Type, Bowling Type, Image, Category</small>
+                    </div>
+
+                    <button class="btn btn-primary btn-large" onclick="importFromCSV()">Upload CSV and Import</button>
+                </div>
+            </div>
+
+            <!-- Excel Upload Tab -->
+            <div id="excel-tab" class="import-tab">
+                <div class="form">
+                    <div class="form-group">
+                        <label for="excelFile">Upload Excel File (.xlsx)</label>
+                        <input type="file" id="excelFile" accept=".xlsx,.xls" />
+                        <small class="help-text">Excel format: Name, Date Of Birth, Age, Role, Batting Type, Bowling Type, Image, Category</small>
+                    </div>
+
+                    <button class="btn btn-primary btn-large" onclick="importFromExcel()">Upload Excel and Import</button>
+                </div>
+            </div>
+
+            <!-- URL Import Tab (Sheets) -->
+            <div id="url-tab" class="import-tab">
+                <div class="form">
+                    <div class="form-group">
+                        <label for="sheetUrl">Google Sheets URL</label>
+                        <input type="text" id="sheetUrl" class="form-control" placeholder="https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit#gid=0" value="">
+                        <small class="help-text">(Optional) If you still want to use Google Sheets, paste the URL here.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="rangeUrl">Sheet Range (Optional)</label>
+                        <input type="text" id="rangeUrl" class="form-control" placeholder="Sheet1!A:E" value="Sheet1!A:E">
+                    </div>
+
+                    <button class="btn btn-primary btn-large" onclick="importFromUrl()">Import from URL</button>
+                </div>
+            </div>
+
+            <!-- ID Import Tab (Sheets) -->
+            <div id="id-tab" class="import-tab">
+                <div class="form">
+                    <div class="form-group">
+                        <label for="spreadsheetId">Spreadsheet ID</label>
+                        <input type="text" id="spreadsheetId" class="form-control" placeholder="sheetId" value="">
+                        <small class="help-text">(Optional) Direct spreadsheet ID</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="rangeId">Sheet Range (Optional)</label>
+                        <input type="text" id="rangeId" class="form-control" placeholder="Sheet1!A:E" value="Sheet1!A:E">
+                    </div>
+
+                    <button class="btn btn-primary btn-large" onclick="importFromId()">Import from ID</button>
+                </div>
+            </div>
+
+            <!-- Info Section -->
+            <div class="info-section">
+                <h3>📋 File Format Requirements</h3>
+                <p>Accepted formats: CSV (.csv) and Excel (.xlsx/.xls). Your file must contain the following columns in this exact order:</p>
+                <table class="format-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Date Of Birth</th>
+                            <th>Age</th>
+                            <th>Role</th>
+                            <th>Batting Type</th>
+                            <th>Bowling Type</th>
+                            <th>Image</th>
+                            <th>Category</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Player Name</strong></td>
+                            <td><strong>YYYY-MM-DD</strong></td>
+                            <td><strong>Number</strong></td>
+                            <td><strong>Role</strong></td>
+                            <td><strong>Type</strong></td>
+                            <td><strong>Type</strong></td>
+                            <td><strong>URL</strong></td>
+                            <td><strong>Category</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>✅ Valid Player Roles</h3>
+                <ul class="roles-list">
+                    <li>All-rounder Bowling</li>
+                    <li>All-rounder Batting</li>
+                    <li>Only Batsman</li>
+                    <li>Only Bowler</li>
+                    <li>Wicket Keeper</li>
+                </ul>
+
+                <h3>ℹ️ Important Notes</h3>
+                <ul class="notes-list">
+                    <li>First row should be headers (Name, Date Of Birth, Age, Role, Batting Type, Bowling Type, Image, Category)</li>
+                    <li>All players from the CSV will be imported into the system</li>
+                    <li>Duplicate player names will be skipped</li>
+                    <li>Missing optional fields (Batting Type, Bowling Type, Image, Category) can be left blank</li>
+                    <li>All imported players will have status: REGISTERED</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Progress Section -->
+        <div id="progressSection" class="progress-section" style="display: none;">
+            <h3>Import Progress</h3>
+            <div class="progress-bar">
+                <div id="progressFill" class="progress-fill"></div>
+            </div>
+            <p id="progressText" class="progress-text">Importing...</p>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultsSection" class="results-section" style="display: none;">
+            <h3>Import Results</h3>
+            <div class="results-grid">
+                <div class="result-item">
+                    <h4>Total Processed</h4>
+                    <p id="resultTotal" class="result-number">0</p>
+                </div>
+                <div class="result-item success">
+                    <h4>Successfully Imported</h4>
+                    <p id="resultSaved" class="result-number">0</p>
+                </div>
+                <div class="result-item error">
+                    <h4>Failed</h4>
+                    <p id="resultFailed" class="result-number">0</p>
+                </div>
+            </div>
+            <div id="resultMessage" class="result-message"></div>
+            <button class="btn btn-secondary" onclick="resetImport()">Import Another File</button>
+            <a href="player-registration.html" class="btn btn-primary">View Imported Players</a>
+        </div>
+
+        <!-- Message Area -->
+        <div id="message" class="message"></div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Cricket Auction Management System. All rights reserved.</p>
+    </footer>
+
+    <script src="js/script.js"></script>
+    <script>
+        function switchImportTab(tabName, clickedBtn) {
+            // Hide all tabs
+            document.getElementById('csv-tab').classList.remove('active');
+            document.getElementById('excel-tab').classList.remove('active');
+            document.getElementById('url-tab').classList.remove('active');
+            document.getElementById('id-tab').classList.remove('active');
+
+            // Remove active class from buttons
+            document.querySelectorAll('.import-tabs .tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab and activate button
+            if (tabName === 'csv') {
+                document.getElementById('csv-tab').classList.add('active');
+                if (clickedBtn) clickedBtn.classList.add('active');
+            } else if (tabName === 'excel') {
+                document.getElementById('excel-tab').classList.add('active');
+                if (clickedBtn) clickedBtn.classList.add('active');
+            } else if (tabName === 'url') {
+                document.getElementById('url-tab').classList.add('active');
+                if (clickedBtn) clickedBtn.classList.add('active');
+            } else {
+                document.getElementById('id-tab').classList.add('active');
+                if (clickedBtn) clickedBtn.classList.add('active');
+            }
+        }
+
+        async function importFromCSV() {
+            const fileInput = document.getElementById('csvFile');
+            if (!fileInput || fileInput.files.length === 0) {
+                showMessage('Please select a CSV file to upload', 'error');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                document.getElementById('progressSection').style.display = 'block';
+                document.getElementById('resultsSection').style.display = 'none';
+                document.getElementById('message').innerHTML = '';
+
+                const response = await fetch('/api/import/upload-csv', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    showMessage('Error: ' + (err.error || response.statusText), 'error');
+                    document.getElementById('progressSection').style.display = 'none';
+                    return;
+                }
+
+                const result = await response.json();
+
+                const normalized = {
+                    totalProcessed: result.totalProcessed || (result.newPlayers + (result.skipped || 0)),
+                    saved: result.saved || result.newPlayers || 0,
+                    failed: result.failed || 0,
+                    message: result.message || 'CSV import completed successfully'
+                };
+
+                showResults(normalized);
+                showMessage('CSV import completed successfully!', 'success');
+
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+                document.getElementById('progressSection').style.display = 'none';
+            }
+        }
+
+        async function importFromExcel() {
+            const fileInput = document.getElementById('excelFile');
+            if (!fileInput || fileInput.files.length === 0) {
+                showMessage('Please select an Excel file to upload', 'error');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                document.getElementById('progressSection').style.display = 'block';
+                document.getElementById('resultsSection').style.display = 'none';
+                document.getElementById('message').innerHTML = '';
+
+                const response = await fetch('/api/import/upload-excel', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    showMessage('Error: ' + (err.error || response.statusText), 'error');
+                    document.getElementById('progressSection').style.display = 'none';
+                    return;
+                }
+
+                const result = await response.json();
+
+                // Normalize returned keys
+                const normalized = {
+                    totalProcessed: result.newPlayers + (result.skipped || 0),
+                    saved: result.newPlayers || 0,
+                    failed: result.failed || 0,
+                    message: 'Excel import completed successfully'
+                };
+
+                showResults(normalized);
+                showMessage('Excel import completed successfully!', 'success');
+
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+                document.getElementById('progressSection').style.display = 'none';
+            }
+        }
+
+        async function importFromUrl() {
+            const sheetUrl = document.getElementById('sheetUrl').value.trim();
+            const range = document.getElementById('rangeUrl').value.trim() || 'Sheet1!A:E';
+
+            if (!sheetUrl) {
+                showMessage('Please enter a Google Sheets URL', 'error');
+                return;
+            }
+
+            const payload = { sheetUrl: sheetUrl, range: range };
+            await executeImport('/api/import/players-from-url', payload);
+        }
+
+        async function importFromId() {
+            const spreadsheetId = document.getElementById('spreadsheetId').value.trim();
+            const range = document.getElementById('rangeId').value.trim() || 'Sheet1!A:E';
+
+            if (!spreadsheetId) {
+                showMessage('Please enter a Spreadsheet ID', 'error');
+                return;
+            }
+
+            const payload = { spreadsheetId: spreadsheetId, range: range };
+            await executeImport('/api/import/players-from-sheets', payload);
+        }
+
+        async function executeImport(endpoint, payload) {
+            try {
+                document.getElementById('progressSection').style.display = 'block';
+                document.getElementById('resultsSection').style.display = 'none';
+                document.getElementById('message').innerHTML = '';
+
+                const response = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                const result = await response.json();
+
+                if (response.ok) {
+                    showResults(result);
+                    showMessage('Import completed successfully!', 'success');
+                } else {
+                    showMessage('Error: ' + (result.error || 'Unknown error'), 'error');
+                    document.getElementById('progressSection').style.display = 'none';
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+                document.getElementById('progressSection').style.display = 'none';
+            }
+        }
+
+        function showResults(result) {
+            document.getElementById('progressSection').style.display = 'none';
+            document.getElementById('resultsSection').style.display = 'block';
+
+            document.getElementById('resultTotal').textContent = result.totalProcessed;
+            document.getElementById('resultSaved').textContent = result.saved;
+            document.getElementById('resultFailed').textContent = result.failed;
+            document.getElementById('resultMessage').innerHTML = `                <p class="success-message">✓ ${result.message}</p>                <p>Successfully imported <strong>${result.saved}</strong> players out of <strong>${result.totalProcessed}</strong></p>            `;
+        }
+
+        function resetImport() {
+            document.getElementById('sheetUrl').value = '';
+            document.getElementById('spreadsheetId').value = '';
+            document.getElementById('rangeUrl').value = 'Sheet1!A:E';
+            document.getElementById('rangeId').value = 'Sheet1!A:E';
+            document.getElementById('progressSection').style.display = 'none';
+            document.getElementById('resultsSection').style.display = 'none';
+            document.getElementById('message').innerHTML = '';
+        }
+
+        function showMessage(msg, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.className = 'message';
+            messageDiv.textContent = msg;
+            messageDiv.classList.add(type);
+            setTimeout(() => { messageDiv.textContent = ''; }, 5000);
+        }
+    </script>
+</body>
+</html>
+

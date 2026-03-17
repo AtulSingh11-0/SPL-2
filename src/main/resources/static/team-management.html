@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Management - Cricket Auction</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="logo">Cricket Auction</h1>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="add-team.html">Add Team</a></li>
+                <li><a href="team-management.html">Manage Teams</a></li>
+                <li><a href="auction.html">Auction</a></li>
+                <li><a href="player-registration.html">Register Player</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h2>Team Management</h2>
+
+        <div id="teamsContainer" class="teams-container">
+            <p>Loading teams...</p>
+        </div>
+
+        <div id="teamDetailsModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <div id="teamDetailsContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Cricket Auction Management System. All rights reserved.</p>
+    </footer>
+
+    <script src="js/script.js"></script>
+    <script>
+        const modal = document.getElementById('teamDetailsModal');
+        const closeBtn = document.querySelector('.close');
+
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+        async function loadTeams() {
+            try {
+                const response = await fetch('/api/teams');
+                const teams = await response.json();
+                const container = document.getElementById('teamsContainer');
+
+                if (teams.length === 0) {
+                    container.innerHTML = '<p>No teams registered yet.</p>';
+                    return;
+                }
+
+                let html = '<div class="teams-grid">';
+                teams.forEach(team => {
+                    html += `
+                        <div class="team-card">
+                            <h3>${team.teamName}</h3>
+                            <p><strong>Captain:</strong> ${team.captain}</p>
+                            <p><strong>Total Budget:</strong> ₹${team.totalBudget.toFixed(2)}</p>
+                            <p><strong>Remaining Budget:</strong> ₹${team.remainingBudget.toFixed(2)}</p>
+                            <p><strong>Players:</strong> ${team.playerCount || 0}</p>
+                            <p><strong>Spent:</strong> ₹${team.spentAmount ? team.spentAmount.toFixed(2) : '0.00'}</p>
+                            <button class="btn btn-secondary" onclick="viewTeamDetails(${team.id})">View Details</button>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+            } catch (error) {
+                document.getElementById('teamsContainer').innerHTML = '<p class="error">Error loading teams</p>';
+            }
+        }
+
+        async function viewTeamDetails(teamId) {
+            try {
+                const response = await fetch(`/api/teams/${teamId}`);
+                const team = await response.json();
+
+                const playersResponse = await fetch(`/api/players?teamId=${teamId}`);
+                const players = await playersResponse.json();
+
+                let detailsHtml = `
+                    <h2>${team.teamName}</h2>
+                    <div class="team-details">
+                        <p><strong>Captain:</strong> ${team.captain}</p>
+                        <p><strong>Total Budget:</strong> ₹${team.totalBudget.toFixed(2)}</p>
+                        <p><strong>Remaining Budget:</strong> ₹${team.remainingBudget.toFixed(2)}</p>
+                        <p><strong>Spent Amount:</strong> ₹${team.spentAmount ? team.spentAmount.toFixed(2) : '0.00'}</p>
+                        ${team.playerRetention1 ? `<p><strong>Retention 1:</strong> ${team.playerRetention1} (₹${team.playerRetention1Money})</p>` : ''}
+                        ${team.playerRetention2 ? `<p><strong>Retention 2:</strong> ${team.playerRetention2} (₹${team.playerRetention2Money})</p>` : ''}
+                    </div>
+
+                    <h3>Team Players</h3>
+                    ${players.length > 0 ? `
+                        <table class="table">
+                            <tr><th>Player Name</th><th>Role</th><th>Sold Price</th><th>Action</th></tr>
+                            ${players.map(player => `
+                                <tr>
+                                    <td>${player.playerName}</td>
+                                    <td>${player.role}</td>
+                                    <td>₹${player.soldPrice ? player.soldPrice.toFixed(2) : 'N/A'}</td>
+                                    <td>
+                                        <button class="btn btn-danger btn-small" onclick="releasePlayer(${teamId}, ${player.id})">Release</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </table>
+                    ` : `<p>No players in this team.</p>`}
+                `;
+
+                document.getElementById('teamDetailsContent').innerHTML = detailsHtml;
+                modal.style.display = 'block';
+            } catch (error) {
+                alert('Error loading team details: ' + error.message);
+            }
+        }
+
+        async function releasePlayer(teamId, playerId) {
+            const releasePrice = prompt('Enter release price:');
+            if (releasePrice === null) return;
+
+            try {
+                const response = await fetch(`/api/teams/${teamId}/release-player/${playerId}?releasePrice=${releasePrice}`, {
+                    method: 'POST'
+                });
+
+                if (response.ok) {
+                    alert('Player released successfully!');
+                    viewTeamDetails(teamId);
+                    loadTeams();
+                } else {
+                    alert('Error releasing player');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Load teams on page load
+        loadTeams();
+    </script>
+</body>
+</html>
+

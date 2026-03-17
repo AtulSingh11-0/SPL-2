@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Player - Cricket Auction</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="logo">Cricket Auction</h1>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="add-team.html">Add Team</a></li>
+                <li><a href="team-management.html">Manage Teams</a></li>
+                <li><a href="auction.html">Auction</a></li>
+                <li><a href="player-registration.html">Register Player</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+                <!-- Bulk actions -->
+                <div class="google-form-sync-section">
+                    <h2>⚠️ Bulk Actions</h2>
+                    <p>Dangerous actions for administration. Use with caution.</p>
+                    <div style="display:flex; gap:1rem; align-items:center;">
+                        <button class="btn btn-danger btn-large" onclick="deleteAllRegistered()">🗑️ Delete ALL Registered Players</button>
+                        <button class="btn btn-secondary btn-large" onclick="location.href='import-from-sheets.html'">📥 Import Players</button>
+                    </div>
+                    <div id="syncMessage" class="message" style="margin-top:1rem;"></div>
+                </div>
+
+                <hr style="margin: 2rem 0; border: none; border-top: 2px solid #e2e8f0;">
+
+        <!-- Manual Registration Section -->
+        <div class="form-section">
+            <h2>📝 Or Register Player Manually</h2>
+            <form id="registerPlayerForm" class="form">
+                <div class="form-group">
+                    <label for="playerName">Player Name <span class="required">*</span></label>
+                    <input type="text" id="playerName" name="playerName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="age">Age <span class="required">*</span></label>
+                    <input type="number" id="age" name="age" min="18" max="50" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="role">Role <span class="required">*</span></label>
+                    <select id="role" name="role" required>
+                        <option value="">-- Select Role --</option>
+                        <option value="All-rounder Bowling">All-rounder Bowling</option>
+                        <option value="All-rounder Batting">All-rounder Batting</option>
+                        <option value="Only Batsman">Only Batsman</option>
+                        <option value="Only Bowler">Only Bowler</option>
+                        <option value="Wicket Keeper">Wicket Keeper</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="basePrice">Base Price (₹) <span class="required">*</span></label>
+                    <input type="number" id="basePrice" name="basePrice" min="0" step="100000" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-large">Register Player</button>
+            </form>
+
+            <div id="message" class="message"></div>
+        </div>
+
+        <div class="players-list-section">
+            <h2>Registered Players</h2>
+            <div class="filter-section">
+                <select id="roleFilter" onchange="filterPlayers()">
+                    <option value="">-- All Roles --</option>
+                    <option value="All-rounder Bowling">All-rounder Bowling</option>
+                    <option value="All-rounder Batting">All-rounder Batting</option>
+                    <option value="Only Batsman">Only Batsman</option>
+                    <option value="Only Bowler">Only Bowler</option>
+                    <option value="Wicket Keeper">Wicket Keeper</option>
+                </select>
+                <select id="statusFilter" onchange="filterPlayers()">
+                    <option value="">-- All Status --</option>
+                    <option value="REGISTERED">Registered</option>
+                    <option value="SOLD">Sold</option>
+                    <option value="UNSOLD">Unsold</option>
+                </select>
+            </div>
+
+            <div id="playersList" class="players-list">
+                <p>Loading players...</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Cricket Auction Management System. All rights reserved.</p>
+    </footer>
+
+    <script src="js/script.js"></script>
+    <script>
+        let allPlayers = [];
+
+        document.getElementById('registerPlayerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = {
+                playerName: document.getElementById('playerName').value,
+                age: parseInt(document.getElementById('age').value),
+                role: document.getElementById('role').value,
+                basePrice: parseFloat(document.getElementById('basePrice').value)
+            };
+
+            try {
+                const response = await fetch('/api/players', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    document.getElementById('message').innerHTML =
+                        '<p class="success">Player registered successfully!</p>';
+                    document.getElementById('registerPlayerForm').reset();
+                    loadPlayers();
+                    setTimeout(() => {
+                        document.getElementById('message').innerHTML = '';
+                    }, 3000);
+                } else {
+                    const error = await response.json();
+                    document.getElementById('message').innerHTML =
+                        '<p class="error">Error: ' + error.message + '</p>';
+                }
+            } catch (error) {
+                document.getElementById('message').innerHTML =
+                    '<p class="error">Error: ' + error.message + '</p>';
+            }
+        });
+
+        async function loadPlayers() {
+            try {
+                const response = await fetch('/api/players');
+                allPlayers = await response.json();
+                displayPlayers(allPlayers);
+            } catch (error) {
+                document.getElementById('playersList').innerHTML = '<p class="error">Error loading players</p>';
+            }
+        }
+
+        function filterPlayers() {
+            const roleFilter = document.getElementById('roleFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+
+            const filtered = allPlayers.filter(player => {
+                const roleMatch = !roleFilter || player.role === roleFilter;
+                const statusMatch = !statusFilter || player.status === statusFilter;
+                return roleMatch && statusMatch;
+            });
+
+            displayPlayers(filtered);
+        }
+
+        function displayPlayers(players) {
+            const playersList = document.getElementById('playersList');
+
+            if (players.length === 0) {
+                playersList.innerHTML = '<p>No players found.</p>';
+                return;
+            }
+
+            let html = '<table class="table"><tr><th>Name</th><th>Age</th><th>Role</th><th>Base Price</th><th>Status</th><th>Team</th><th>Sold Price</th></tr>';
+            players.forEach(player => {
+                html += `<tr>
+                    <td>${player.playerName}</td>
+                    <td>${player.age}</td>
+                    <td>${player.role}</td>
+                    <td>₹${player.basePrice.toFixed(2)}</td>
+                    <td><span class="status-badge status-${player.status}">${player.status}</span></td>
+                    <td>${player.teamName || 'N/A'}</td>
+                    <td>₹${player.soldPrice ? player.soldPrice.toFixed(2) : 'N/A'}</td>
+                </tr>`;
+            });
+            html += '</table>';
+            playersList.innerHTML = html;
+        }
+
+        // Sync players from Google Form
+        async function deleteAllRegistered() {
+            if (!confirm('Are you sure you want to DELETE ALL registered players? This cannot be undone.')) return;
+            try {
+                const resp = await fetch('/players?status=REGISTERED', { method: 'DELETE' });
+                if (resp.ok) {
+                    const json = await resp.json();
+                    showSyncMessage(`✅ Deleted ${json.deleted || 'ALL'} registered players`, 'success');
+                    loadPlayers();
+                } else {
+                    const err = await resp.json();
+                    showSyncMessage('❌ Error: ' + (err.error || resp.statusText), 'error');
+                }
+            } catch (e) {
+                showSyncMessage('❌ Error: ' + e.message, 'error');
+            }
+        }
+
+        function showSyncMessage(msg, type) {
+            const msgDiv = document.getElementById('syncMessage');
+            msgDiv.className = 'message ' + type;
+            msgDiv.textContent = msg;
+            msgDiv.style.display = 'block';
+            setTimeout(() => {
+                msgDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // Load players on page load
+        loadPlayers();
+    </script>
+</body>
+</html>
+
