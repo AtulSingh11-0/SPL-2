@@ -57,96 +57,252 @@
             pools.</p>
     </div>
 
+    <!-- Auction Player Card Styles -->
+    <style>
+        .auction-card-center {
+            display: flex;
+            justify-content: center;
+            padding: 1.5rem 0;
+        }
+        .auction-player-card {
+            display: flex;
+            max-width: 1300px;
+            width: 100%;
+            background: #fff;
+            border-radius: 20px;
+            border: 3px solid #002D62;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 45, 98, 0.2);
+        }
+
+        /* LEFT: Full-height image panel */
+        .auction-card-left {
+            flex: 0 0 580px;
+            background: #001a3a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+        .auction-card-left img {
+            width: 100%;
+            max-width: 540px;
+            height: 580px;
+            object-fit: cover;
+            border-radius: 14px;
+            border: 3px solid #FFD700;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        /* RIGHT: All info stacked */
+        .auction-card-right {
+            flex: 1;
+            padding: 3rem 3.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 1.5rem;
+        }
+        .auction-card-right .player-name-text {
+            font-size: 4.2rem;
+            font-weight: 800;
+            color: #002D62;
+            margin: 0;
+            line-height: 1.15;
+        }
+        .auction-card-right .role-badge {
+            display: inline-block;
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #002D62;
+            padding: 0.7rem 2rem;
+            border-radius: 6px;
+            width: fit-content;
+        }
+        .auction-card-right .base-price-tag {
+            font-size: 3.2rem;
+            font-weight: 700;
+            color: #e65100;
+        }
+        .auction-info-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            margin-top: 0.5rem;
+        }
+        .auction-info-row {
+            display: flex;
+            align-items: baseline;
+            gap: 0.6rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eef2f6;
+        }
+        .auction-info-row:last-child {
+            border-bottom: none;
+        }
+        .auction-info-row .info-label {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #8899aa;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            min-width: 120px;
+            flex-shrink: 0;
+        }
+        .auction-info-row .info-value {
+            font-size: 1.7rem;
+            font-weight: 600;
+            color: #1a2a3a;
+        }
+
+        .auction-action-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1.5rem;
+            padding: 0;
+            max-width: 1300px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .auction-action-bar .btn {
+            min-width: 180px;
+            flex: 1;
+            font-size: 1.4rem;
+            padding: 1rem 1.5rem;
+        }
+        .auction-sale-form {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 14px;
+            border: 3px solid #002D62;
+            margin-top: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            max-width: 1300px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .auction-sale-form h3 {
+            color: #002D62;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            border-bottom: 3px solid #FFD700;
+            padding-bottom: 0.5rem;
+        }
+        .auction-sale-form .form-group {
+            margin-bottom: 1.2rem;
+        }
+        .auction-sale-form label {
+            font-weight: 600;
+            font-size: 1.05rem;
+            color: #333;
+            margin-bottom: 0.4rem;
+            display: block;
+        }
+        .auction-sale-form .form-control {
+            font-size: 1.05rem;
+            padding: 0.7rem 1rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 768px) {
+            .auction-player-card {
+                flex-direction: column;
+            }
+            .auction-card-left {
+                flex: unset;
+                padding: 1.5rem;
+            }
+            .auction-card-left img {
+                height: 240px;
+                max-width: 240px;
+            }
+            .auction-card-right {
+                padding: 1.5rem;
+            }
+            .auction-card-right .player-name-text {
+                font-size: 2rem;
+            }
+        }
+    </style>
+
     <!-- Current Player Card Section -->
     <div id="currentPlayerSection" class="current-player-container" style="display: none;">
         <div class="player-card-wrapper">
             <!-- Player Card -->
-            <div class="player-card">
-                <div
-                    style="display:flex; gap: 1.5rem; align-items: center; margin-bottom: 1.5rem; background: #f8f9fa; padding: 1rem; border-radius: 8px;">
-                    <img id="playerImage" src="/images/img.png" alt="Player Image"
-                        style="width: 120px; height: 120px; border-radius: 12px; object-fit: cover; border: 3px solid #002D62; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
-                    <div class="player-header" style="text-align: left; flex: 1;">
-                        <h3 id="playerName" class="player-name" style="font-size: 2.2rem; margin-bottom: 0.5rem;">-</h3>
-                        <span class="player-role" id="playerRole"
-                            style="font-size: 1.3rem; background: #FFD700; color: #002D62; padding: 0.5rem 1rem; border-radius: 6px; font-weight: bold;">-</span>
+            <div class="auction-card-center">
+                <div class="auction-player-card">
+                    <div class="auction-card-left">
+                        <img id="playerImage" src="/images/img.png" alt="Player Image">
                     </div>
-                </div>
-
-                <div class="player-details">
-                    <div class="detail-item">
-                        <span class="label">Age:</span>
-                        <span class="value" id="playerAge">-</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="label">Date of Birth:</span>
-                        <span class="value" id="playerDob">-</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="label">Batting Type:</span>
-                        <span class="value" id="playerBatting">-</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="label">Bowling Type:</span>
-                        <span class="value" id="playerBowling">-</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="label">Category:</span>
-                        <span class="value" id="playerCategory">-</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="label">Base Price:</span>
-                        <span class="value" id="basePrice">-</span>
+                    <div class="auction-card-right">
+                        <h3 id="playerName" class="player-name-text">-</h3>
+                        <span id="playerRole" class="role-badge">-</span>
+                        <div class="base-price-tag">₹ <span id="basePrice">-</span></div>
+                        <div class="auction-info-list">
+                            <div class="auction-info-row">
+                                <span class="info-label">Age</span>
+                                <span class="info-value" id="playerAge">-</span>
+                            </div>
+                            <div class="auction-info-row">
+                                <span class="info-label">Date of Birth</span>
+                                <span class="info-value" id="playerDob">-</span>
+                            </div>
+                            <div class="auction-info-row">
+                                <span class="info-label">Batting</span>
+                                <span class="info-value" id="playerBatting">-</span>
+                            </div>
+                            <div class="auction-info-row">
+                                <span class="info-label">Bowling</span>
+                                <span class="info-value" id="playerBowling">-</span>
+                            </div>
+                            <div class="auction-info-row">
+                                <span class="info-label">Category</span>
+                                <span class="info-value" id="playerCategory">-</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Bidding Actions -->
-            <div class="bidding-panel" style="text-align: center;">
-                <div id="primaryActionButtons" class="bid-actions"
-                    style="display: flex; gap: 1rem; justify-content: center; margin-bottom: 1rem;">
-                    <button id="initSoldBtn" class="btn btn-success" onclick="showSoldForm()"
-                        style="flex: 1; font-size: 1.5rem; padding: 1rem;">
-                        <span class="icon">✓</span> Mark Sold
-                    </button>
-                    <button id="unsoldBtn" class="btn btn-danger" onclick="markUnsold()"
-                        style="flex: 1; font-size: 1.5rem; padding: 1rem;">
-                        <span class="icon">✗</span> Mark Unsold
-                    </button>
+            <div class="auction-action-bar" id="primaryActionButtons">
+                <button id="initSoldBtn" class="btn btn-success" onclick="showSoldForm()">
+                    <span class="icon">✓</span> Mark Sold
+                </button>
+                <button id="unsoldBtn" class="btn btn-danger" onclick="markUnsold()">
+                    <span class="icon">✗</span> Mark Unsold
+                </button>
+            </div>
+
+            <!-- Hidden Sold Form -->
+            <div id="soldFormSection" class="auction-sale-form" style="display: none;">
+                <h3>Finalize Sale</h3>
+
+                <div class="form-group">
+                    <label for="teamSelect">Select Team <span class="required">*</span></label>
+                    <select id="teamSelect" class="form-control">
+                        <option value="">-- Choose Team --</option>
+                    </select>
                 </div>
 
-                <!-- Hidden Sold Form -->
-                <div id="soldFormSection"
-                    style="display: none; background: #f8f9fa; padding: 2rem; border-radius: 12px; border: 3px solid #002D62; margin-top: 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-                    <h3
-                        style="color: #002D62; margin-bottom: 1.5rem; font-size: 1.8rem; border-bottom: 2px solid #FFD700; padding-bottom: 0.5rem;">
-                        Finalize Sale</h3>
+                <div class="form-group">
+                    <label for="bidAmount">Final Sold Price (₹) <span class="required">*</span></label>
+                    <input type="number" id="bidAmount" class="form-control" placeholder="Enter bid amount" min="0" step="1">
+                </div>
 
-                    <div class="form-group" style="text-align: left;">
-                        <label for="teamSelect" style="font-weight: bold; font-size: 1.2rem;">Select Team <span
-                                class="required">*</span></label>
-                        <select id="teamSelect" class="form-control" style="font-size: 1.2rem; padding: 0.8rem;">
-                            <option value="">-- Choose Team --</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group" style="text-align: left;">
-                        <label for="bidAmount" style="font-weight: bold; font-size: 1.2rem;">Final Sold Price (₹) <span
-                                class="required">*</span></label>
-                        <input type="number" id="bidAmount" class="form-control" placeholder="Enter bid amount" min="0"
-                            step="1" style="font-size: 1.2rem; padding: 0.8rem;">
-                    </div>
-
-                    <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
-                        <button id="submitBidBtn" class="btn btn-success" onclick="placeBid()"
-                            style="font-size: 1.3rem; flex: 1; padding: 0.8rem;">
-                            Confirm Sale
-                        </button>
-                        <button class="btn btn-secondary" onclick="hideSoldForm()"
-                            style="font-size: 1.3rem; flex: 1; padding: 0.8rem;">
-                            Cancel
-                        </button>
-                    </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; margin-top: 1.5rem;">
+                    <button id="submitBidBtn" class="btn btn-success" onclick="placeBid()"
+                        style="font-size: 1.2rem; flex: 1; min-width: 150px; padding: 0.8rem;">
+                        Confirm Sale
+                    </button>
+                    <button class="btn btn-secondary" onclick="hideSoldForm()"
+                        style="font-size: 1.2rem; flex: 1; min-width: 150px; padding: 0.8rem;">
+                        Cancel
+                    </button>
                 </div>
             </div>
         </div>
@@ -296,7 +452,7 @@
             document.getElementById('playerName').textContent = player.playerName;
             document.getElementById('playerRole').textContent = player.role;
             document.getElementById('playerAge').textContent = player.age;
-            document.getElementById('basePrice').textContent = '₹' + player.basePrice.toLocaleString('en-IN');
+            document.getElementById('basePrice').textContent = player.basePrice.toLocaleString('en-IN');
             document.getElementById('playerDob').textContent = player.dateOfBirth || '-';
             document.getElementById('playerBatting').textContent = player.battingType || '-';
             document.getElementById('playerBowling').textContent = player.bowlingType || '-';
