@@ -1,32 +1,31 @@
 package com.example.spl2.service;
 
-import com.example.spl2.dto.PlayerDTO;
-import com.example.spl2.entity.Player;
-import com.example.spl2.entity.Team;
-import com.example.spl2.exception.PlayerNotFoundException;
-import com.example.spl2.exception.TeamNotFoundException;
-import com.example.spl2.repository.PlayerRepository;
-import com.example.spl2.repository.TeamRepository;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import com.example.spl2.dto.PlayerDTO;
+import com.example.spl2.entity.RegisteredPlayer;
+import com.example.spl2.exception.PlayerNotFoundException;
+import com.example.spl2.repository.RegisteredPlayerRepository;
+import com.example.spl2.repository.SoldRepository;
 
 @Service
 public class PlayerService {
 
     @Autowired
-    private PlayerRepository playerRepository;
+    private RegisteredPlayerRepository playerRepository;
 
     @Autowired
-    private TeamRepository teamRepository;
+    private SoldRepository soldRepository;
 
     @Transactional
     public PlayerDTO createPlayer(PlayerDTO playerDTO) {
-        Player player = Player.builder()
+        RegisteredPlayer player = RegisteredPlayer.builder()
                 .playerName(playerDTO.getPlayerName())
                 .dateOfBirth(playerDTO.getDateOfBirth())
                 .age(playerDTO.getAge())
@@ -37,14 +36,15 @@ public class PlayerService {
                 .imageUrl(playerDTO.getImageUrl())
                 .category(playerDTO.getCategory())
                 .status("REGISTERED")
+                .isRetained(false)
                 .build();
 
-        Player savedPlayer = playerRepository.save(player);
+        RegisteredPlayer savedPlayer = playerRepository.save(player);
         return convertToDTO(savedPlayer);
     }
 
     public PlayerDTO getPlayerById(Long id) {
-        Player player = playerRepository.findById(id)
+        RegisteredPlayer player = playerRepository.findById(id)
                 .orElseThrow(() -> new PlayerNotFoundException("Player not found with id: " + id));
         return convertToDTO(player);
     }
@@ -76,15 +76,9 @@ public class PlayerService {
                 .collect(Collectors.toList());
     }
 
-    public List<PlayerDTO> getPlayersByTeamId(Long teamId) {
-        return playerRepository.findByTeamId(teamId).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
-    }
-
     @Transactional
     public PlayerDTO updatePlayer(Long id, PlayerDTO playerDTO) {
-        Player player = playerRepository.findById(id)
+        RegisteredPlayer player = playerRepository.findById(id)
                 .orElseThrow(() -> new PlayerNotFoundException("Player not found with id: " + id));
 
         player.setPlayerName(playerDTO.getPlayerName());
@@ -97,42 +91,13 @@ public class PlayerService {
         player.setImageUrl(playerDTO.getImageUrl());
         player.setCategory(playerDTO.getCategory());
 
-        Player updatedPlayer = playerRepository.save(player);
+        RegisteredPlayer updatedPlayer = playerRepository.save(player);
         return convertToDTO(updatedPlayer);
     }
 
     @Transactional
-    public PlayerDTO sellPlayer(Long playerId, Long teamId, Double soldPrice) {
-        Player player = playerRepository.findById(playerId)
-                .orElseThrow(() -> new PlayerNotFoundException("Player not found with id: " + playerId));
-
-        Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new TeamNotFoundException("Team not found with id: " + teamId));
-
-        player.setTeam(team);
-        player.setStatus("SOLD");
-        player.setSoldPrice(soldPrice);
-
-        Player savedPlayer = playerRepository.save(player);
-        return convertToDTO(savedPlayer);
-    }
-
-    @Transactional
-    public PlayerDTO markPlayerUnsold(Long playerId) {
-        Player player = playerRepository.findById(playerId)
-                .orElseThrow(() -> new PlayerNotFoundException("Player not found with id: " + playerId));
-
-        player.setTeam(null);
-        player.setStatus("UNSOLD");
-        player.setSoldPrice(null);
-
-        Player savedPlayer = playerRepository.save(player);
-        return convertToDTO(savedPlayer);
-    }
-
-    @Transactional
     public void deletePlayer(Long id) {
-        Player player = playerRepository.findById(id)
+        RegisteredPlayer player = playerRepository.findById(id)
                 .orElseThrow(() -> new PlayerNotFoundException("Player not found with id: " + id));
         playerRepository.delete(player);
     }
@@ -144,12 +109,27 @@ public class PlayerService {
 
     @Transactional
     public long deletePlayersByStatus(String status) {
-        List<Player> players = playerRepository.findByStatus(status);
+        // Find players by status
+        List<RegisteredPlayer> players = playerRepository.findByStatus(status);
         long count = players.size();
         if (count > 0) {
             playerRepository.deleteAll(players);
         }
         return count;
+    }
+
+    public List<PlayerDTO> getPlayersByTeamId(Long teamId) {
+        // A team's current players are those who are Sold to this team
+        return soldRepository.findAll().stream()
+                .filter(sold -> sold.getTeam() != null && sold.getTeam().getId().equals(teamId))
+                .map(sold -> {
+                    PlayerDTO dto = convertPlayerToDTO(sold.getPlayer());
+                    dto.setSoldPrice(sold.getSoldPrice());
+                    dto.setTeamId(sold.getTeam().getId());
+                    dto.setTeamName(sold.getTeam().getTeamName());
+                    return dto;
+                })
+                .collect(Collectors.toList());
     }
 
     public long getCountByStatus(String status) {
@@ -160,15 +140,15 @@ public class PlayerService {
         return playerRepository.countByStatusAndRole(status, role);
     }
 
-    public Optional<Player> getRandomRegisteredPlayerByRole(String role) {
+    public Optional<RegisteredPlayer> getRandomRegisteredPlayerByRole(String role) {
         return playerRepository.findRandomRegisteredPlayerByRole(role);
     }
 
-    public PlayerDTO convertPlayerToDTO(Player player) {
+    public PlayerDTO convertPlayerToDTO(RegisteredPlayer player) {
         return convertToDTO(player);
     }
 
-    private PlayerDTO convertToDTO(Player player) {
+    private PlayerDTO convertToDTO(RegisteredPlayer player) {
         PlayerDTO dto = PlayerDTO.builder()
                 .id(player.getId())
                 .playerName(player.getPlayerName())
@@ -177,17 +157,11 @@ public class PlayerService {
                 .role(player.getRole())
                 .basePrice(player.getBasePrice())
                 .status(player.getStatus())
-                .soldPrice(player.getSoldPrice())
                 .battingType(player.getBattingType())
                 .bowlingType(player.getBowlingType())
                 .imageUrl(player.getImageUrl())
                 .category(player.getCategory())
                 .build();
-
-        if (player.getTeam() != null) {
-            dto.setTeamId(player.getTeam().getId());
-            dto.setTeamName(player.getTeam().getTeamName());
-        }
 
         return dto;
     }

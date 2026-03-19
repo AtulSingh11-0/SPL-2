@@ -1,21 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Auction - Cricket Auction</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
     <nav class="navbar">
         <div class="nav-container">
             <h1 class="logo">🏏 Cricket Auction</h1>
             <ul class="nav-links">
                 <li><a href="index.html">Home</a></li>
-                <li><a href="add-team.html">Add Team</a></li>
-                <li><a href="team-management.html">Navigate Teams</a></li>
-                <li><a href="auction.html" class="active">Auction</a></li>
-                <li><a href="player-registration.html">Register Player</a></li>
+                <li><a href="team-management.html">Teams</a></li>
+                <li><a href="registered-players.html">Registered DB</a></li>
+                <li><a href="auction-pool.html">Auction DB</a></li>
+                <li><a href="sold-players.html">Sold DB</a></li>
+                <li><a href="unsold-players.html">Unsold DB</a></li>
+                <li><a href="auction.html" class="active" style="background: yellow; color: blue;">▶ Live Auction</a>
+                </li>
             </ul>
         </div>
     </nav>
@@ -41,155 +46,183 @@
             </div>
         </div>
 
-        <!-- Current Player Card Section -->
-        <div id="currentPlayerSection" class="current-player-container" style="display: none;">
-            <div class="player-card-wrapper">
-                <!-- Player Card -->
-                <div class="player-card">
-                    <div class="player-header">
-                        <h3 id="playerName" class="player-name">-</h3>
-                        <span class="player-role" id="playerRole">-</span>
-                    </div>
+    </div>
 
-                    <div class="player-details">
-                        <div class="detail-item">
-                            <span class="label">Age:</span>
-                            <span class="value" id="playerAge">-</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="label">Date of Birth:</span>
-                            <span class="value" id="playerDob">-</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="label">Batting Type:</span>
-                            <span class="value" id="playerBatting">-</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="label">Bowling Type:</span>
-                            <span class="value" id="playerBowling">-</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="label">Category:</span>
-                            <span class="value" id="playerCategory">-</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="label">Base Price:</span>
-                            <span class="value" id="basePrice">-</span>
-                        </div>
+    <!-- Auction Complete state -->
+    <div id="auctionCompleteMessage"
+        style="display: none; background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); color: #002D62; padding: 4rem; border-radius: 15px; text-align: center; margin: 2rem 0; box-shadow: 0 8px 25px rgba(0,0,0,0.3); border: 5px solid #002D62;">
+        <h2 style="font-size: 3.5rem; margin-bottom: 1rem; color: #002D62; text-shadow: none;">🎉 Auction Completed! 🎉
+        </h2>
+        <p style="font-size: 1.8rem; font-weight: bold;">There are no more players available in the Auction or Unsold
+            pools.</p>
+    </div>
+
+    <!-- Current Player Card Section -->
+    <div id="currentPlayerSection" class="current-player-container" style="display: none;">
+        <div class="player-card-wrapper">
+            <!-- Player Card -->
+            <div class="player-card">
+                <div
+                    style="display:flex; gap: 1.5rem; align-items: center; margin-bottom: 1.5rem; background: #f8f9fa; padding: 1rem; border-radius: 8px;">
+                    <img id="playerImage" src="/images/img.png" alt="Player Image"
+                        style="width: 120px; height: 120px; border-radius: 12px; object-fit: cover; border: 3px solid #002D62; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                    <div class="player-header" style="text-align: left; flex: 1;">
+                        <h3 id="playerName" class="player-name" style="font-size: 2.2rem; margin-bottom: 0.5rem;">-</h3>
+                        <span class="player-role" id="playerRole"
+                            style="font-size: 1.3rem; background: #FFD700; color: #002D62; padding: 0.5rem 1rem; border-radius: 6px; font-weight: bold;">-</span>
                     </div>
                 </div>
 
-                <!-- Bidding Form -->
-                <div class="bidding-panel">
-                    <h3>Place Your Bid</h3>
+                <div class="player-details">
+                    <div class="detail-item">
+                        <span class="label">Age:</span>
+                        <span class="value" id="playerAge">-</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Date of Birth:</span>
+                        <span class="value" id="playerDob">-</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Batting Type:</span>
+                        <span class="value" id="playerBatting">-</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Bowling Type:</span>
+                        <span class="value" id="playerBowling">-</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Category:</span>
+                        <span class="value" id="playerCategory">-</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Base Price:</span>
+                        <span class="value" id="basePrice">-</span>
+                    </div>
+                </div>
+            </div>
 
-                    <div class="form-group">
-                        <label for="teamSelect">Select Team <span class="required">*</span></label>
-                        <select id="teamSelect" class="form-control">
+            <!-- Bidding Actions -->
+            <div class="bidding-panel" style="text-align: center;">
+                <div id="primaryActionButtons" class="bid-actions"
+                    style="display: flex; gap: 1rem; justify-content: center; margin-bottom: 1rem;">
+                    <button id="initSoldBtn" class="btn btn-success" onclick="showSoldForm()"
+                        style="flex: 1; font-size: 1.5rem; padding: 1rem;">
+                        <span class="icon">✓</span> Mark Sold
+                    </button>
+                    <button id="unsoldBtn" class="btn btn-danger" onclick="markUnsold()"
+                        style="flex: 1; font-size: 1.5rem; padding: 1rem;">
+                        <span class="icon">✗</span> Mark Unsold
+                    </button>
+                </div>
+
+                <!-- Hidden Sold Form -->
+                <div id="soldFormSection"
+                    style="display: none; background: #f8f9fa; padding: 2rem; border-radius: 12px; border: 3px solid #002D62; margin-top: 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                    <h3
+                        style="color: #002D62; margin-bottom: 1.5rem; font-size: 1.8rem; border-bottom: 2px solid #FFD700; padding-bottom: 0.5rem;">
+                        Finalize Sale</h3>
+
+                    <div class="form-group" style="text-align: left;">
+                        <label for="teamSelect" style="font-weight: bold; font-size: 1.2rem;">Select Team <span
+                                class="required">*</span></label>
+                        <select id="teamSelect" class="form-control" style="font-size: 1.2rem; padding: 0.8rem;">
                             <option value="">-- Choose Team --</option>
                         </select>
                     </div>
 
-                    <div class="form-group">
-                        <label for="bidAmount">Bid Amount (₹) <span class="required">*</span></label>
-                        <input type="number" id="bidAmount" class="form-control" placeholder="Enter bid amount" min="0" step="100000">
+                    <div class="form-group" style="text-align: left;">
+                        <label for="bidAmount" style="font-weight: bold; font-size: 1.2rem;">Final Sold Price (₹) <span
+                                class="required">*</span></label>
+                        <input type="number" id="bidAmount" class="form-control" placeholder="Enter bid amount" min="0"
+                            step="1" style="font-size: 1.2rem; padding: 0.8rem;">
                     </div>
 
-                    <div class="bid-actions">
-                        <button id="bidBtn" class="btn btn-success" onclick="placeBid()">
-                            <span class="icon">✓</span> Sold
+                    <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
+                        <button id="submitBidBtn" class="btn btn-success" onclick="placeBid()"
+                            style="font-size: 1.3rem; flex: 1; padding: 0.8rem;">
+                            Confirm Sale
                         </button>
-                        <button id="unsoldBtn" class="btn btn-danger" onclick="markUnsold()">
-                            <span class="icon">✗</span> Unsold
-                        </button>
-                        <button id="nextPlayerBtnInSection" class="btn btn-info" onclick="getNextPlayer()">
-                            <span class="icon">→</span> Next Player
+                        <button class="btn btn-secondary" onclick="hideSoldForm()"
+                            style="font-size: 1.3rem; flex: 1; padding: 0.8rem;">
+                            Cancel
                         </button>
                     </div>
                 </div>
             </div>
-
-            <div id="message" class="message"></div>
         </div>
 
-        <!-- Statistics Section -->
-        <div class="auction-stats-section">
-            <h3>Auction Progress</h3>
-            <div class="stats-grid">
-                <div class="stat-box">
-                    <h4>Registered Players</h4>
-                    <p id="registered-count" class="stat-value">0</p>
-                </div>
-                <div class="stat-box">
-                    <h4>Sold Players</h4>
-                    <p id="sold-count" class="stat-value">0</p>
-                </div>
-                <div class="stat-box">
-                    <h4>Unsold Players</h4>
-                    <p id="unsold-count" class="stat-value">0</p>
-                </div>
+        <div id="message" class="message"></div>
+    </div>
+
+    <!-- Statistics Section -->
+    <div class="auction-stats-section">
+        <h3>Auction Progress</h3>
+        <div class="stats-grid">
+            <div class="stat-box">
+                <h4>Registered Players</h4>
+                <p id="registered-count" class="stat-value">0</p>
+            </div>
+            <div class="stat-box">
+                <h4>Sold Players</h4>
+                <p id="sold-count" class="stat-value">0</p>
+            </div>
+            <div class="stat-box">
+                <h4>Unsold Players</h4>
+                <p id="unsold-count" class="stat-value">0</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs for Unsold and Sold Players -->
+    <div class="auction-tables-section">
+        <!-- Unsold Players Table -->
+        <div id="unsold-tab" class="tab-content active">
+            <h3>Unsold Players</h3>
+            <div id="unsoldTable" class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Player Name</th>
+                            <th>Age</th>
+                            <th>Role</th>
+                            <th>Base Price</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="unsold-tbody">
+                        <tr>
+                            <td colspan="5" class="no-data">No unsold players yet</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
-        <!-- Auction Queue Section -->
-        <div class="auction-queue-section">
-            <h3>Auction Queue (Order)</h3>
-            <div id="auctionEntries" style="max-height:300px; overflow:auto; background:white; padding:1rem; border-radius:8px;">
-                <p>Loading auction entries...</p>
+        <!-- Sold Players Table -->
+        <div id="sold-tab" class="tab-content">
+            <h3>Sold Players</h3>
+            <div id="soldTable" class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Player Name</th>
+                            <th>Age</th>
+                            <th>Role</th>
+                            <th>Base Price</th>
+                            <th>Sold Price</th>
+                            <th>Sold To (Team)</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sold-tbody">
+                        <tr>
+                            <td colspan="7" class="no-data">No sold players yet</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
-
-        <!-- Tabs for Unsold and Sold Players -->
-        <div class="auction-tables-section">
-            <div class="tabs">
-                <button class="tab-button active" onclick="switchTab('unsold')">Unsold Players</button>
-                <button class="tab-button" onclick="switchTab('sold')">Sold Players</button>
-            </div>
-
-            <!-- Unsold Players Table -->
-            <div id="unsold-tab" class="tab-content active">
-                <h3>Unsold Players</h3>
-                <div id="unsoldTable" class="table-wrapper">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Player Name</th>
-                                <th>Age</th>
-                                <th>Role</th>
-                                <th>Base Price</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="unsold-tbody">
-                            <tr><td colspan="5" class="no-data">No unsold players yet</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Sold Players Table -->
-            <div id="sold-tab" class="tab-content">
-                <h3>Sold Players</h3>
-                <div id="soldTable" class="table-wrapper">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Player Name</th>
-                                <th>Age</th>
-                                <th>Role</th>
-                                <th>Base Price</th>
-                                <th>Sold Price</th>
-                                <th>Sold To (Team)</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="sold-tbody">
-                            <tr><td colspan="7" class="no-data">No sold players yet</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+    </div>
     </div>
 
     <footer>
@@ -224,23 +257,38 @@
                 const response = await fetch('/api/auction/next-player');
 
                 if (response.status === 204) {
-                    showMessage('Auction Complete! All players have been auctioned.', 'success');
                     document.getElementById('currentPlayerSection').style.display = 'none';
+                    document.getElementById('auctionCompleteMessage').style.display = 'block';
+                    showMessage('Auction Complete! All players have been auctioned.', 'success');
                     return;
                 }
 
                 const player = await response.json();
                 if (player) {
+                    document.getElementById('auctionCompleteMessage').style.display = 'none';
                     displayPlayer(player);
                     loadAuctionStatus();
                     loadStats();
                 } else {
-                    showMessage('No more players to auction', 'info');
                     document.getElementById('currentPlayerSection').style.display = 'none';
+                    document.getElementById('auctionCompleteMessage').style.display = 'block';
+                    showMessage('No more players to auction', 'info');
                 }
             } catch (error) {
                 showMessage('Error: ' + error.message, 'error');
             }
+        }
+
+        function getDriveDirectLink(url) {
+            if (!url) return '/images/img.png';
+            if (url.includes('drive.google.com/open?id=')) {
+                return url.replace('open?id=', 'uc?export=view&id=');
+            }
+            if (url.includes('drive.google.com/file/d/')) {
+                const id = url.split('/d/')[1].split('/')[0];
+                return `https://drive.google.com/uc?export=view&id=${id}`;
+            }
+            return url;
         }
 
         function displayPlayer(player) {
@@ -248,16 +296,33 @@
             document.getElementById('playerName').textContent = player.playerName;
             document.getElementById('playerRole').textContent = player.role;
             document.getElementById('playerAge').textContent = player.age;
-                            document.getElementById('basePrice').textContent = '₹' + player.basePrice.toLocaleString('en-IN');
-                            document.getElementById('playerDob').textContent = player.dateOfBirth || '-';
-                            document.getElementById('playerBatting').textContent = player.battingType || '-';
-                            document.getElementById('playerBowling').textContent = player.bowlingType || '-';
-                            document.getElementById('playerCategory').textContent = player.category || '-';
+            document.getElementById('basePrice').textContent = '₹' + player.basePrice.toLocaleString('en-IN');
+            document.getElementById('playerDob').textContent = player.dateOfBirth || '-';
+            document.getElementById('playerBatting').textContent = player.battingType || '-';
+            document.getElementById('playerBowling').textContent = player.bowlingType || '-';
+            document.getElementById('playerCategory').textContent = player.category || '-';
+            document.getElementById('playerImage').src = getDriveDirectLink(player.imageUrl);
+
             document.getElementById('currentPlayerSection').style.display = 'block';
             document.getElementById('bidAmount').value = player.basePrice;
 
+            // Reset visibility for new player
+            if (typeof hideSoldForm === 'function') {
+                hideSoldForm();
+            }
+
             // Scroll to player card
             document.getElementById('currentPlayerSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function showSoldForm() {
+            document.getElementById('primaryActionButtons').style.display = 'none';
+            document.getElementById('soldFormSection').style.display = 'block';
+        }
+
+        function hideSoldForm() {
+            document.getElementById('primaryActionButtons').style.display = 'flex';
+            document.getElementById('soldFormSection').style.display = 'none';
         }
 
         async function loadTeams() {
@@ -336,6 +401,10 @@
 
                 document.getElementById('statusText').textContent = status.auctionActive ? 'Active' : 'Paused';
                 document.getElementById('categoryText').textContent = status.currentCategory;
+
+                if (status.auctionActive) {
+                    document.getElementById('nextPlayerBtn').disabled = false;
+                }
             } catch (error) {
                 console.error('Error loading auction status', error);
             }
@@ -346,10 +415,10 @@
                 const registeredRes = await fetch('/api/players?status=REGISTERED');
                 const registeredPlayers = await registeredRes.json();
 
-                const soldRes = await fetch('/api/players?status=SOLD');
+                const soldRes = await fetch('/api/sold');
                 const soldPlayers = await soldRes.json();
 
-                const unsoldRes = await fetch('/api/players?status=UNSOLD');
+                const unsoldRes = await fetch('/api/unsold');
                 const unsoldPlayers = await unsoldRes.json();
 
                 // Update stats
@@ -413,9 +482,12 @@
 
         async function loadAuctionEntries() {
             try {
+                const div = document.getElementById('auctionEntries');
+                if (!div) return; // Prevent crash if auction queue UI was removed
+
                 const res = await fetch('/api/auction/entries');
                 const entries = await res.json();
-                const div = document.getElementById('auctionEntries');
+
                 if (!entries || entries.length === 0) {
                     div.innerHTML = '<p>No auction entries</p>';
                     return;
@@ -427,7 +499,7 @@
                             <strong>(${e.orderIndex}) ${p.playerName}</strong><br>
                             <small>${p.role} • ${p.age} yrs • ${p.category || ''}</small>
                         </div>
-                        <div>₹${(p.basePrice||0).toLocaleString('en-IN')}</div>
+                        <div>₹${(p.basePrice || 0).toLocaleString('en-IN')}</div>
                     </div>`;
                 }).join('');
             } catch (err) {
@@ -476,5 +548,5 @@
         }, 3000);
     </script>
 </body>
-</html>
 
+</html>

@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auction")
@@ -19,12 +20,12 @@ public class ApiAuctionController {
     private AuctionService auctionService;
 
     @PostMapping("/initialize")
-    public ResponseEntity<String> initializeAuction() {
+    public ResponseEntity<?> initializeAuction() {
         try {
             int created = auctionService.initializeAuction();
-            return new ResponseEntity<>(java.util.Map.of("createdEntries", created), HttpStatus.OK);
+            return new ResponseEntity<>(Map.of("createdEntries", created), HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>(java.util.Map.of("error", e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(Map.of("error", e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -61,6 +62,11 @@ public class ApiAuctionController {
         return new ResponseEntity<>("Player marked as unsold", HttpStatus.OK);
     }
 
+    @GetMapping("/entries")
+    public ResponseEntity<List<Map<String, Object>>> getAuctionEntries() {
+        return new ResponseEntity<>(auctionService.getAuctionEntries(), HttpStatus.OK);
+    }
+
     @GetMapping("/status")
     public ResponseEntity<AuctionState> getAuctionStatus() {
         AuctionState status = auctionService.getAuctionStatus();
@@ -73,4 +79,3 @@ public class ApiAuctionController {
         return new ResponseEntity<>(categories, HttpStatus.OK);
     }
 }
-

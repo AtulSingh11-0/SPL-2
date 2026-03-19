@@ -5,12 +5,12 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "players")
+@Table(name = "registered_players")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Player {
+public class RegisteredPlayer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,25 +20,19 @@ public class Player {
     private String playerName;
 
     @Column
-    private String dateOfBirth;  // Changed from LocalDate to String to handle CSV import properly
+    private String dateOfBirth;
 
     @Column(nullable = false)
     private Integer age;
 
     @Column(nullable = false)
-    private String role; // All-rounder Bowling, All-rounder Batting, Only Batsman, Only Bowler, Wicket Keeper
+    private String role; // Batting All Rounder, Wicketkeeper, Batter, Bowling All Rounder, All Rounder, Bowler
 
     @Column(nullable = false)
     private Double basePrice;
 
     @Column(nullable = false)
     private String status; // REGISTERED, SOLD, UNSOLD
-
-    @ManyToOne
-    @JoinColumn(name = "team_id")
-    private Team team;
-
-    private Double soldPrice;
 
     private String battingType;
 
@@ -47,6 +41,16 @@ public class Player {
     private String imageUrl;
 
     private String category;
+
+    // Retention flags
+    @Column(columnDefinition = "boolean default false")
+    private Boolean isRetained;
+
+    private Integer retentionNumber; // 1 or 2
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "retained_team_id")
+    private Team retainedTeam;
 
     private LocalDateTime createdAt;
 
@@ -61,6 +65,9 @@ public class Player {
         updatedAt = LocalDateTime.now();
         if (status == null) {
             status = "REGISTERED";
+        }
+        if (isRetained == null) {
+            isRetained = false;
         }
     }
 

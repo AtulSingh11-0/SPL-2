@@ -1,7 +1,6 @@
 package com.example.spl2.repository;
 
 import com.example.spl2.entity.Bid;
-import com.example.spl2.entity.Player;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

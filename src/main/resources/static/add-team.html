@@ -21,8 +21,20 @@
     </nav>
 
     <div class="container">
-        <div class="form-section">
-            <h2>Add New Team</h2>
+        <div id="noPlayersWarning" style="display: none; background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%); color: white; padding: 3rem; border-radius: 12px; text-align: center; margin-bottom: 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+            <h2 style="font-size: 2.5rem; margin-bottom: 1rem;">⚠️ No Players Found</h2>
+            <p style="font-size: 1.5rem; margin-bottom: 2rem;">You must upload players via CSV before you can create a team and assign a captain or retained players.</p>
+            <a href="player-registration.html" class="btn btn-primary" style="font-size: 1.5rem; padding: 1rem 2rem; background: #FFD700; color: #002D62;">📥 Upload CSV Now</a>
+        </div>
+
+        <div id="auctionNotLiveWarning" style="display: none; background: linear-gradient(135deg, #FF8C00 0%, #FF4500 100%); color: white; padding: 3rem; border-radius: 12px; text-align: center; margin-bottom: 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+            <h2 style="font-size: 2.5rem; margin-bottom: 1rem;">⚠️ Auction Not Live</h2>
+            <p style="font-size: 1.5rem; margin-bottom: 2rem;">Teams can only be created after the auction has started. Please go to the Live Auction section and initialize the auction first.</p>
+            <a href="auction.html" class="btn btn-primary" style="font-size: 1.5rem; padding: 1rem 2rem; background: #002D62; color: #FFF;">▶ Go to Live Auction</a>
+        </div>
+
+        <div class="form-section" id="teamFormSection">
+            <h2 style="font-size: 2.5rem; color: #002D62; border-bottom: 3px solid #FFD700; padding-bottom: 0.5rem; margin-bottom: 2rem;">➕ Add New Team</h2>
             <form id="addTeamForm" class="form">
                 <div class="form-group">
                     <label for="teamName">Team Name <span class="required">*</span></label>
@@ -30,8 +42,10 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="captain">Captain Name <span class="required">*</span></label>
-                    <input type="text" id="captain" name="captain" required>
+                    <label for="captain" style="font-size: 1.2rem; font-weight: bold; color: #002D62;">Captain Name <span class="required">*</span></label>
+                    <select id="captain" name="captain" required style="width: 100%; padding: 1rem; border-radius: 8px; border: 2px solid #ccc; font-size: 1.1rem;">
+                        <option value="">-- Select Captain --</option>
+                    </select>
                 </div>
 
                 <div class="form-group">
@@ -39,26 +53,30 @@
                     <input type="number" id="totalBudget" name="totalBudget" min="0" step="0.01" required>
                 </div>
 
-                <h3>Optional - Player Retention</h3>
+                <h3 style="font-size: 1.8rem; color: #002D62; margin: 2rem 0 1rem 0; padding-bottom: 0.5rem; border-bottom: 2px solid #eee;">⭐ Optional - Player Retention</h3>
 
                 <div class="form-group">
-                    <label for="playerRetention1">Player Retention 1</label>
-                    <input type="text" id="playerRetention1" name="playerRetention1">
+                    <label for="playerRetention1" style="font-weight: bold; color: #002D62;">Player Retention 1</label>
+                    <select id="playerRetention1" name="playerRetention1" style="width: 100%; padding: 1rem; border-radius: 8px; border: 2px solid #ccc; font-size: 1.1rem;">
+                        <option value="">-- Select Player --</option>
+                    </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="playerRetention1Money">Retention 1 Amount</label>
-                    <input type="number" id="playerRetention1Money" name="playerRetention1Money" min="0" step="0.01">
+                    <label for="playerRetention1Money" style="font-weight: bold; color: #002D62;">Retention 1 Amount (Min: ₹6,000)</label>
+                    <input type="number" id="playerRetention1Money" name="playerRetention1Money" min="6000" step="1" style="width: 100%; padding: 1rem; border-radius: 8px; border: 2px solid #ccc; font-size: 1.1rem;">
                 </div>
 
                 <div class="form-group">
-                    <label for="playerRetention2">Player Retention 2</label>
-                    <input type="text" id="playerRetention2" name="playerRetention2">
+                    <label for="playerRetention2" style="font-weight: bold; color: #002D62;">Player Retention 2</label>
+                    <select id="playerRetention2" name="playerRetention2" disabled style="width: 100%; padding: 1rem; border-radius: 8px; border: 2px solid #ccc; font-size: 1.1rem; background: #f5f5f5;">
+                        <option value="">-- Select Retention 1 First --</option>
+                    </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="playerRetention2Money">Retention 2 Amount</label>
-                    <input type="number" id="playerRetention2Money" name="playerRetention2Money" min="0" step="0.01">
+                    <label for="playerRetention2Money" style="font-weight: bold; color: #002D62;">Retention 2 Amount (Min: ₹4,000)</label>
+                    <input type="number" id="playerRetention2Money" name="playerRetention2Money" min="4000" step="1" disabled style="width: 100%; padding: 1rem; border-radius: 8px; border: 2px solid #ccc; font-size: 1.1rem; background: #f5f5f5;">
                 </div>
 
                 <button type="submit" class="btn btn-primary btn-large">Create Team</button>
@@ -81,6 +99,78 @@
 
     <script src="js/script.js"></script>
     <script>
+        let registeredPlayers = [];
+
+        async function initAddTeam() {
+            try {
+                // Check if auction is live first
+                const statusRes = await fetch('/api/auction/status');
+                const status = await statusRes.json();
+                
+                if (!status.auctionActive) {
+                    document.getElementById('auctionNotLiveWarning').style.display = 'block';
+                    document.getElementById('teamFormSection').style.display = 'none';
+                    return; // Stop further initialization
+                }
+
+                const response = await fetch('/api/players');
+                const players = await response.json();
+                
+                // Filter registered players (or potentially unsold if they can be retained before auction)
+                registeredPlayers = players.filter(p => p.status === 'REGISTERED');
+
+                if (registeredPlayers.length === 0) {
+                    document.getElementById('noPlayersWarning').style.display = 'block';
+                    document.getElementById('teamFormSection').style.display = 'none';
+                } else {
+                    populatePlayerSelects();
+                    setupRetentionLogic();
+                }
+            } catch (error) {
+                console.error("Error loading initial data:", error);
+            }
+        }
+
+        function populatePlayerSelects() {
+            const captainSelect = document.getElementById('captain');
+            const ret1Select = document.getElementById('playerRetention1');
+            const ret2Select = document.getElementById('playerRetention2');
+
+            const optionsHTML = '<option value="">-- Select Player --</option>' + 
+                registeredPlayers.map(p => `<option value="${p.playerName}">${p.playerName} (${p.role})</option>`).join('');
+
+            captainSelect.innerHTML = optionsHTML;
+            ret1Select.innerHTML = optionsHTML;
+            ret2Select.innerHTML = '<option value="">-- Select Retention 1 First --</option>';
+        }
+
+        function setupRetentionLogic() {
+            const ret1Select = document.getElementById('playerRetention1');
+            const ret2Select = document.getElementById('playerRetention2');
+            const ret2Money = document.getElementById('playerRetention2Money');
+
+            ret1Select.addEventListener('change', () => {
+                if (ret1Select.value) {
+                    ret2Select.disabled = false;
+                    ret2Money.disabled = false;
+                    ret2Select.style.background = '#fff';
+                    ret2Money.style.background = '#fff';
+                    
+                    const optionsHTML = '<option value="">-- Select Player --</option>' + 
+                        registeredPlayers.filter(p => p.playerName !== ret1Select.value)
+                        .map(p => `<option value="${p.playerName}">${p.playerName} (${p.role})</option>`).join('');
+                    ret2Select.innerHTML = optionsHTML;
+                } else {
+                    ret2Select.disabled = true;
+                    ret2Money.disabled = true;
+                    ret2Select.style.background = '#f5f5f5';
+                    ret2Money.style.background = '#f5f5f5';
+                    ret2Select.innerHTML = '<option value="">-- Select Retention 1 First --</option>';
+                    ret2Select.value = '';
+                    ret2Money.value = '';
+                }
+            });
+        }
         document.getElementById('addTeamForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -151,8 +241,9 @@
             }
         }
 
-        // Load teams on page load
+        // Load teams and initialize on page load
         loadTeams();
+        initAddTeam();
     </script>
 </body>
 </html>

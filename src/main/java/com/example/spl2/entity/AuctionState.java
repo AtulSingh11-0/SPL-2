@@ -24,7 +24,7 @@ public class AuctionState {
 
     @ManyToOne
     @JoinColumn(name = "current_player_id")
-    private Player currentPlayer;
+    private RegisteredPlayer currentPlayer;
 
     @Column(nullable = false)
     private Boolean auctionActive;

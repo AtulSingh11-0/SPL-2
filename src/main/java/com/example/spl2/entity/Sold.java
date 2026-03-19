@@ -18,9 +18,9 @@ public class Sold {
 
     @OneToOne
     @JoinColumn(name = "player_id", nullable = false, unique = true)
-    private Player player;
+    private RegisteredPlayer player;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_id", nullable = false)
     private Team team;
 
@@ -34,4 +34,3 @@ public class Sold {
         if (soldAt == null) soldAt = LocalDateTime.now();
     }
 }
-

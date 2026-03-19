@@ -18,7 +18,7 @@ public class Unsold {
 
     @OneToOne
     @JoinColumn(name = "player_id", nullable = false, unique = true)
-    private Player player;
+    private RegisteredPlayer player;
 
     private LocalDateTime unsoldAt;
 
@@ -30,4 +30,3 @@ public class Unsold {
         if (requeueCount == null) requeueCount = 0;
     }
 }
-

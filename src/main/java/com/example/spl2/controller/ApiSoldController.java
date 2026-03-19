@@ -26,7 +26,15 @@ public class ApiSoldController {
     @GetMapping
     public ResponseEntity<List<com.example.spl2.dto.PlayerDTO>> listSold() {
         List<Sold> sold = soldRepository.findAll();
-        List<PlayerDTO> dtos = sold.stream().map(s -> playerService.convertPlayerToDTO(s.getPlayer())).collect(Collectors.toList());
+        List<PlayerDTO> dtos = sold.stream().map(s -> {
+            PlayerDTO dto = playerService.convertPlayerToDTO(s.getPlayer());
+            dto.setSoldPrice(s.getSoldPrice());
+            if (s.getTeam() != null) {
+                dto.setTeamId(s.getTeam().getId());
+                dto.setTeamName(s.getTeam().getTeamName());
+            }
+            return dto;
+        }).collect(Collectors.toList());
         return ResponseEntity.ok(dtos);
     }
 }

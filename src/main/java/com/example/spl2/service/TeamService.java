@@ -1,18 +1,21 @@
 package com.example.spl2.service;
 
-import com.example.spl2.dto.TeamDTO;
-import com.example.spl2.entity.Team;
-import com.example.spl2.entity.Player;
-import com.example.spl2.exception.TeamAlreadyExistsException;
-import com.example.spl2.exception.TeamNotFoundException;
-import com.example.spl2.repository.TeamRepository;
-import com.example.spl2.repository.PlayerRepository;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import com.example.spl2.dto.TeamDTO;
+import com.example.spl2.entity.Sold;
+import com.example.spl2.entity.Team;
+import com.example.spl2.exception.TeamAlreadyExistsException;
+import com.example.spl2.exception.TeamNotFoundException;
+import com.example.spl2.repository.AuctionRepository;
+import com.example.spl2.repository.RegisteredPlayerRepository;
+import com.example.spl2.repository.SoldRepository;
+import com.example.spl2.repository.TeamRepository;
 
 @Service
 public class TeamService {
@@ -21,12 +24,31 @@ public class TeamService {
     private TeamRepository teamRepository;
 
     @Autowired
-    private PlayerRepository playerRepository;
+    private RegisteredPlayerRepository registeredPlayerRepository;
+
+    @Autowired
+    private SoldRepository soldRepository;
+
+    @Autowired
+    private AuctionRepository auctionRepository;
 
     @Transactional
     public TeamDTO createTeam(TeamDTO teamDTO) {
         if (teamRepository.existsByTeamName(teamDTO.getTeamName())) {
             throw new TeamAlreadyExistsException("Team with name '" + teamDTO.getTeamName() + "' already exists");
+        }
+
+        Double ret1Money = teamDTO.getPlayerRetention1Money();
+        if (teamDTO.getPlayerRetention1() != null && !teamDTO.getPlayerRetention1().isEmpty()) {
+            if (ret1Money == null) {
+                ret1Money = 6000.0;
+            }
+        }
+        Double ret2Money = teamDTO.getPlayerRetention2Money();
+        if (teamDTO.getPlayerRetention2() != null && !teamDTO.getPlayerRetention2().isEmpty()) {
+            if (ret2Money == null) {
+                ret2Money = 4000.0;
+            }
         }
 
         Team team = Team.builder()
@@ -35,21 +57,61 @@ public class TeamService {
                 .totalBudget(teamDTO.getTotalBudget())
                 .playerRetention1(teamDTO.getPlayerRetention1())
                 .playerRetention2(teamDTO.getPlayerRetention2())
-                .playerRetention1Money(teamDTO.getPlayerRetention1Money())
-                .playerRetention2Money(teamDTO.getPlayerRetention2Money())
+                .playerRetention1Money(ret1Money)
+                .playerRetention2Money(ret2Money)
                 .build();
 
-        // Calculate remaining budget after retentions
         Double remainingBudget = teamDTO.getTotalBudget();
-        if (teamDTO.getPlayerRetention1Money() != null) {
-            remainingBudget -= teamDTO.getPlayerRetention1Money();
+        if (ret1Money != null) {
+            remainingBudget -= ret1Money;
         }
-        if (teamDTO.getPlayerRetention2Money() != null) {
-            remainingBudget -= teamDTO.getPlayerRetention2Money();
+        if (ret2Money != null) {
+            remainingBudget -= ret2Money;
         }
         team.setRemainingBudget(remainingBudget);
 
         Team savedTeam = teamRepository.save(team);
+
+        // Process Captain
+        if (teamDTO.getCaptain() != null && !teamDTO.getCaptain().isEmpty()) {
+            registeredPlayerRepository.findByPlayerName(teamDTO.getCaptain()).ifPresent(p -> {
+                p.setStatus("SOLD");
+                p.setIsRetained(true);
+                registeredPlayerRepository.save(p);
+                Sold sold = Sold.builder().player(p).team(savedTeam).soldPrice(0.0).build();
+                soldRepository.save(sold);
+                auctionRepository.deleteByPlayerId(p.getId());
+            });
+        }
+
+        // Process Retention 1
+        final Double finalRet1Money = ret1Money;
+        if (teamDTO.getPlayerRetention1() != null && !teamDTO.getPlayerRetention1().isEmpty()) {
+            registeredPlayerRepository.findByPlayerName(teamDTO.getPlayerRetention1()).ifPresent(p -> {
+                p.setStatus("SOLD");
+                p.setIsRetained(true);
+                registeredPlayerRepository.save(p);
+                Double price = finalRet1Money != null ? finalRet1Money : 0.0;
+                Sold sold = Sold.builder().player(p).team(savedTeam).soldPrice(price).build();
+                soldRepository.save(sold);
+                auctionRepository.deleteByPlayerId(p.getId());
+            });
+        }
+
+        // Process Retention 2
+        final Double finalRet2Money = ret2Money;
+        if (teamDTO.getPlayerRetention2() != null && !teamDTO.getPlayerRetention2().isEmpty()) {
+            registeredPlayerRepository.findByPlayerName(teamDTO.getPlayerRetention2()).ifPresent(p -> {
+                p.setStatus("SOLD");
+                p.setIsRetained(true);
+                registeredPlayerRepository.save(p);
+                Double price = finalRet2Money != null ? finalRet2Money : 0.0;
+                Sold sold = Sold.builder().player(p).team(savedTeam).soldPrice(price).build();
+                soldRepository.save(sold);
+                auctionRepository.deleteByPlayerId(p.getId());
+            });
+        }
+
         return convertToDTO(savedTeam);
     }
 
@@ -88,30 +150,7 @@ public class TeamService {
         teamRepository.delete(team);
     }
 
-    @Transactional
-    public void releasePlayer(Long teamId, Long playerId, Double releasePrice) {
-        Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new TeamNotFoundException("Team not found with id: " + teamId));
-
-        Player player = playerRepository.findById(playerId)
-                .orElseThrow(() -> new RuntimeException("Player not found with id: " + playerId));
-
-        if (!player.getTeam().getId().equals(teamId)) {
-            throw new RuntimeException("Player does not belong to this team");
-        }
-
-        // Add release price back to team budget
-        team.setRemainingBudget(team.getRemainingBudget() + releasePrice);
-
-        // Remove player from team
-        player.setTeam(null);
-        player.setStatus("REGISTERED");
-        player.setSoldPrice(null);
-
-        playerRepository.save(player);
-        teamRepository.save(team);
-    }
-
+    // Handled in AuctionService/SoldService primarily, but putting stub here
     @Transactional
     public void deductFromBudget(Long teamId, Double amount) {
         Team team = teamRepository.findById(teamId)
@@ -127,11 +166,7 @@ public class TeamService {
     }
 
     private TeamDTO convertToDTO(Team team) {
-        List<Player> players = playerRepository.findByTeamId(team.getId());
-        Double spentAmount = players.stream()
-                .mapToDouble(p -> p.getSoldPrice() != null ? p.getSoldPrice() : 0)
-                .sum();
-
+        // Will be updated when implementing explicit Sold table querying
         return TeamDTO.builder()
                 .id(team.getId())
                 .teamName(team.getTeamName())
@@ -142,9 +177,8 @@ public class TeamService {
                 .playerRetention2(team.getPlayerRetention2())
                 .playerRetention1Money(team.getPlayerRetention1Money())
                 .playerRetention2Money(team.getPlayerRetention2Money())
-                .playerCount(players.size())
-                .spentAmount(spentAmount)
+                .playerCount(soldRepository.countByTeamId(team.getId()))
+                .spentAmount(team.getTotalBudget() - team.getRemainingBudget())
                 .build();
     }
 }
-

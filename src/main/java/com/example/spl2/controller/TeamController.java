@@ -1,21 +1,35 @@
 package com.example.spl2.controller;
 
-import com.example.spl2.dto.TeamDTO;
-import com.example.spl2.service.TeamService;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import com.example.spl2.dto.TeamDTO;
+import com.example.spl2.service.AuctionService;
+import com.example.spl2.service.TeamService;
 
 @RestController
- @RequestMapping("/api/teams")
+@RequestMapping("/api/teams")
 @CrossOrigin(origins = "*")
 public class TeamController {
 
     @Autowired
     private TeamService teamService;
+
+    @Autowired
+    private AuctionService auctionService;
 
     @PostMapping
     public ResponseEntity<TeamDTO> createTeam(@RequestBody TeamDTO teamDTO) {
@@ -52,7 +66,7 @@ public class TeamController {
             @PathVariable Long teamId,
             @PathVariable Long playerId,
             @RequestParam Double releasePrice) {
-        teamService.releasePlayer(teamId, playerId, releasePrice);
+        auctionService.releasePlayer(teamId, playerId, releasePrice);
         return new ResponseEntity<>("Player released successfully", HttpStatus.OK);
     }
 }

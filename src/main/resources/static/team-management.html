@@ -12,10 +12,12 @@
             <h1 class="logo">Cricket Auction</h1>
             <ul class="nav-links">
                 <li><a href="index.html">Home</a></li>
-                <li><a href="add-team.html">Add Team</a></li>
-                <li><a href="team-management.html">Manage Teams</a></li>
-                <li><a href="auction.html">Auction</a></li>
-                <li><a href="player-registration.html">Register Player</a></li>
+                <li><a href="team-management.html" class="active">Teams</a></li>
+                <li><a href="registered-players.html">Registered DB</a></li>
+                <li><a href="auction-pool.html">Auction DB</a></li>
+                <li><a href="sold-players.html">Sold DB</a></li>
+                <li><a href="unsold-players.html">Unsold DB</a></li>
+                <li><a href="auction.html" style="background: yellow; color: blue;">▶ Live Auction</a></li>
             </ul>
         </div>
     </nav>
@@ -101,6 +103,7 @@
                         <p><strong>Total Budget:</strong> ₹${team.totalBudget.toFixed(2)}</p>
                         <p><strong>Remaining Budget:</strong> ₹${team.remainingBudget.toFixed(2)}</p>
                         <p><strong>Spent Amount:</strong> ₹${team.spentAmount ? team.spentAmount.toFixed(2) : '0.00'}</p>
+                        <p><strong>Total Players:</strong> ${team.playerCount}</p>
                         ${team.playerRetention1 ? `<p><strong>Retention 1:</strong> ${team.playerRetention1} (₹${team.playerRetention1Money})</p>` : ''}
                         ${team.playerRetention2 ? `<p><strong>Retention 2:</strong> ${team.playerRetention2} (₹${team.playerRetention2Money})</p>` : ''}
                     </div>

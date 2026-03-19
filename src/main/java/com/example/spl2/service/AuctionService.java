@@ -1,37 +1,39 @@
 package com.example.spl2.service;
 
-import com.example.spl2.dto.PlayerDTO;
-import com.example.spl2.entity.AuctionEntry;
-import com.example.spl2.entity.AuctionState;
-import com.example.spl2.entity.Player;
-import com.example.spl2.entity.Sold;
-import com.example.spl2.entity.Team;
-import com.example.spl2.entity.Unsold;
-import com.example.spl2.repository.AuctionEntryRepository;
-import com.example.spl2.repository.AuctionStateRepository;
-import com.example.spl2.repository.PlayerRepository;
-import com.example.spl2.repository.SoldRepository;
-import com.example.spl2.repository.TeamRepository;
-import com.example.spl2.repository.UnsoldRepository;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import com.example.spl2.dto.PlayerDTO;
+import com.example.spl2.entity.Auction;
+import com.example.spl2.entity.AuctionState;
+import com.example.spl2.entity.RegisteredPlayer;
+import com.example.spl2.entity.Sold;
+import com.example.spl2.entity.Team;
+import com.example.spl2.entity.Unsold;
+import com.example.spl2.repository.AuctionRepository;
+import com.example.spl2.repository.AuctionStateRepository;
+import com.example.spl2.repository.RegisteredPlayerRepository;
+import com.example.spl2.repository.SoldRepository;
+import com.example.spl2.repository.TeamRepository;
+import com.example.spl2.repository.UnsoldRepository;
 
 @Service
 public class AuctionService {
 
     @Autowired
-    private PlayerRepository playerRepository;
+    private RegisteredPlayerRepository playerRepository;
 
     @Autowired
     private TeamRepository teamRepository;
@@ -43,10 +45,7 @@ public class AuctionService {
     private PlayerService playerService;
 
     @Autowired
-    private TeamService teamService;
-
-    @Autowired
-    private AuctionEntryRepository auctionEntryRepository;
+    private AuctionRepository auctionRepository;
 
     @Autowired
     private SoldRepository soldRepository;
@@ -54,73 +53,41 @@ public class AuctionService {
     @Autowired
     private UnsoldRepository unsoldRepository;
 
-    // Define auction categories in order
     private final List<String> AUCTION_CATEGORIES = Arrays.asList(
             "All-rounder Bowling",
             "All-rounder Batting",
             "Only Batsman",
             "Only Bowler",
-            "Wicket Keeper"
-    );
-
-    // Role priority order (highest to lowest)
-    private final List<String> ROLE_PRIORITY = Arrays.asList(
-            "Batting All Rounder",
-            "Wicketkeeper",
-            "Batter",
-            "Bowling All Rounder",
-            "All Rounder",
-            "Bowler"
-    );
+            "Wicket Keeper");
 
     @Transactional
     public int initializeAuction() {
-        // Clear existing auction entries
-        auctionEntryRepository.deleteAll();
+        auctionRepository.deleteAll();
 
-        // Take all non-retained REGISTERED players
-        List<Player> candidates = playerRepository.findByStatus("REGISTERED");
+        List<RegisteredPlayer> candidates = playerRepository.findByStatus("REGISTERED");
 
-        // Filter out retained players (if you have retention flags on Player, check them; here we assume status != RETAINED)
-        List<Player> nonRetained = candidates.stream()
-                .filter(p -> !"RETAINED".equalsIgnoreCase(p.getStatus()))
+        List<RegisteredPlayer> nonRetained = candidates.stream()
+                .filter(p -> p.getIsRetained() == null || !p.getIsRetained())
                 .collect(Collectors.toList());
 
-        // Group by role according to ROLE_PRIORITY
-        List<Player> ordered = new ArrayList<>();
-        for (String role : ROLE_PRIORITY) {
-            List<Player> group = nonRetained.stream()
-                    .filter(p -> role.equalsIgnoreCase(p.getRole()))
-                    .collect(Collectors.toList());
-            // shuffle within group
-            Collections.shuffle(group);
-            ordered.addAll(group);
-        }
+        List<RegisteredPlayer> ordered = new ArrayList<>(nonRetained);
+        Collections.shuffle(ordered);
 
-        // For any players whose role didn't match exactly, append them at end shuffled
-        List<Player> remainder = nonRetained.stream()
-                .filter(p -> !ROLE_PRIORITY.contains(p.getRole()))
-                .collect(Collectors.toList());
-        Collections.shuffle(remainder);
-        ordered.addAll(remainder);
-
-        // Persist auction entries with sequential orderIndex
         int idx = 1;
         int created = 0;
-        for (Player p : ordered) {
-            AuctionEntry entry = AuctionEntry.builder()
+        for (RegisteredPlayer p : ordered) {
+            Auction entry = Auction.builder()
                     .player(p)
                     .orderIndex(idx++)
                     .category(p.getRole())
                     .build();
-            auctionEntryRepository.save(entry);
+            auctionRepository.save(entry);
             created++;
         }
 
-        // Initialize auction state
         auctionStateRepository.deleteAll();
         AuctionState state = AuctionState.builder()
-                .currentCategory(ROLE_PRIORITY.get(0))
+                .currentCategory(AUCTION_CATEGORIES.get(0))
                 .categoryIndex(0)
                 .auctionActive(true)
                 .categoryStartTime(LocalDateTime.now())
@@ -131,55 +98,48 @@ public class AuctionService {
 
     @Transactional
     public PlayerDTO getNextPlayer() {
-        List<AuctionEntry> entries = auctionEntryRepository.findAllByOrderByOrderIndexAsc();
+        List<Auction> entries = auctionRepository.findAllByOrderByOrderIndexAsc();
         if (entries.isEmpty()) {
-            // When empty, check unsold and requeue if necessary
             if (!unsoldRepository.findAll().isEmpty()) {
                 requeueUnsoldToAuction();
-                entries = auctionEntryRepository.findAllByOrderByOrderIndexAsc();
-                if (entries.isEmpty()) return null;
-            } else {
-                return null;
+                entries = auctionRepository.findAllByOrderByOrderIndexAsc();
             }
         }
 
-        AuctionEntry next = entries.get(0);
-        Player player = next.getPlayer();
+        // If still empty after checking unsold, then auction is truly finished
+        if (entries.isEmpty()) {
+            return null;
+        }
 
-        // Keep entry in DB until sold or unsold action; but return the DTO for frontend display
+        Auction next = entries.get(0);
+        RegisteredPlayer player = next.getPlayer();
+
         return playerService.convertPlayerToDTO(player);
     }
 
     @Transactional
     public void sellPlayer(Long playerId, Long teamId, Double soldPrice) {
-        // Validate auction entry exists for player
-        if (!auctionEntryRepository.existsByPlayerId(playerId)) {
+        if (!auctionRepository.existsByPlayerId(playerId)) {
             throw new RuntimeException("Player is not in the active auction pool");
         }
 
-        Player player = playerRepository.findById(playerId)
+        RegisteredPlayer player = playerRepository.findById(playerId)
                 .orElseThrow(() -> new RuntimeException("Player not found"));
 
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new RuntimeException("Team not found"));
 
-        // Use optimistic locking on Team: fetch and update within transaction
         try {
             if (team.getRemainingBudget() < soldPrice) {
                 throw new RuntimeException("Insufficient budget");
             }
 
-            // Deduct budget
             team.setRemainingBudget(team.getRemainingBudget() - soldPrice);
             teamRepository.save(team);
 
-            // Mark player sold
-            player.setTeam(team);
             player.setStatus("SOLD");
-            player.setSoldPrice(soldPrice);
             playerRepository.save(player);
 
-            // Insert into Sold table
             Sold sold = Sold.builder()
                     .player(player)
                     .team(team)
@@ -187,8 +147,7 @@ public class AuctionService {
                     .build();
             soldRepository.save(sold);
 
-            // Remove from auction entries
-            auctionEntryRepository.deleteByPlayerId(playerId);
+            auctionRepository.deleteByPlayerId(playerId);
 
         } catch (OptimisticLockingFailureException e) {
             throw new RuntimeException("Concurrent update conflict, please retry");
@@ -197,83 +156,96 @@ public class AuctionService {
 
     @Transactional
     public void markPlayerUnsold(Long playerId) {
-        if (!auctionEntryRepository.existsByPlayerId(playerId)) {
+        if (!auctionRepository.existsByPlayerId(playerId)) {
             throw new RuntimeException("Player is not in the active auction pool");
         }
 
-        Player player = playerRepository.findById(playerId)
+        RegisteredPlayer player = playerRepository.findById(playerId)
                 .orElseThrow(() -> new RuntimeException("Player not found"));
 
-        // Mark as unsold in player table
         player.setStatus("UNSOLD");
-        player.setTeam(null);
-        player.setSoldPrice(null);
         playerRepository.save(player);
 
-        // Add to Unsold table
         Unsold unsold = Unsold.builder().player(player).requeueCount(0).build();
         unsoldRepository.save(unsold);
 
-        // Remove from auction pool
-        auctionEntryRepository.deleteByPlayerId(playerId);
+        auctionRepository.deleteByPlayerId(playerId);
+    }
+
+    @Transactional
+    public void releasePlayer(Long teamId, Long playerId, Double releasePrice) {
+        RegisteredPlayer player = playerRepository.findById(playerId)
+                .orElseThrow(() -> new RuntimeException("Player not found with id: " + playerId));
+
+        Sold soldRecord = soldRepository.findByPlayerId(playerId)
+                .orElseThrow(() -> new RuntimeException("Player is not in the Sold table"));
+
+        if (!soldRecord.getTeam().getId().equals(teamId)) {
+            throw new RuntimeException("Player does not belong to this team");
+        }
+
+        Team team = soldRecord.getTeam();
+
+        try {
+            team.setRemainingBudget(team.getRemainingBudget() + releasePrice);
+            teamRepository.save(team);
+
+            soldRepository.delete(soldRecord);
+
+            player.setStatus("UNSOLD");
+            playerRepository.save(player);
+
+            Unsold unsold = Unsold.builder().player(player).requeueCount(0).build();
+            unsoldRepository.save(unsold);
+
+        } catch (OptimisticLockingFailureException e) {
+            throw new RuntimeException("Concurrent update conflict, please retry");
+        }
     }
 
     @Transactional
     protected void requeueUnsoldToAuction() {
         List<Unsold> unsoldList = unsoldRepository.findAll();
-        if (unsoldList.isEmpty()) return;
+        if (unsoldList.isEmpty())
+            return;
 
-        // Collect players and build new ordered list by ROLE_PRIORITY and shuffle within role
-        List<Player> playersToRequeue = unsoldList.stream().map(Unsold::getPlayer).collect(Collectors.toList());
+        List<RegisteredPlayer> playersToRequeue = unsoldList.stream().map(Unsold::getPlayer)
+                .collect(Collectors.toList());
 
-        List<Player> ordered = new ArrayList<>();
-        for (String role : ROLE_PRIORITY) {
-            List<Player> group = playersToRequeue.stream()
-                    .filter(p -> role.equalsIgnoreCase(p.getRole()))
-                    .collect(Collectors.toList());
-            Collections.shuffle(group);
-            ordered.addAll(group);
-        }
-        // remainder
-        List<Player> remainder = playersToRequeue.stream().filter(p -> !ROLE_PRIORITY.contains(p.getRole())).collect(Collectors.toList());
-        Collections.shuffle(remainder);
-        ordered.addAll(remainder);
+        List<RegisteredPlayer> ordered = new ArrayList<>(playersToRequeue);
+        Collections.shuffle(ordered);
 
         int startIdx = 1;
-        List<AuctionEntry> existing = auctionEntryRepository.findAllByOrderByOrderIndexAsc();
+        List<Auction> existing = auctionRepository.findAllByOrderByOrderIndexAsc();
         if (!existing.isEmpty()) {
             startIdx = existing.get(existing.size() - 1).getOrderIndex() + 1;
         }
 
-        for (Player p : ordered) {
-            AuctionEntry entry = AuctionEntry.builder()
+        for (RegisteredPlayer p : ordered) {
+            Auction entry = Auction.builder()
                     .player(p)
                     .orderIndex(startIdx++)
                     .category(p.getRole())
                     .build();
-            auctionEntryRepository.save(entry);
+            auctionRepository.save(entry);
         }
 
-        // Clear unsold
         unsoldRepository.deleteAll();
     }
 
-    // Return the current auction state
     public AuctionState getAuctionStatus() {
         return getOrCreateAuctionState();
     }
 
-    // Return the configured auction categories
     public List<String> getAuctionCategories() {
         return AUCTION_CATEGORIES;
     }
 
-    // Return ordered auction entries with player DTOs and orderIndex
-    public List<java.util.Map<String, Object>> getAuctionEntries() {
-        List<com.example.spl2.entity.AuctionEntry> entries = auctionEntryRepository.findAllByOrderByOrderIndexAsc();
-        List<java.util.Map<String, Object>> result = new ArrayList<>();
-        for (com.example.spl2.entity.AuctionEntry e : entries) {
-            java.util.Map<String, Object> m = new java.util.HashMap<>();
+    public List<Map<String, Object>> getAuctionEntries() {
+        List<Auction> entries = auctionRepository.findAllByOrderByOrderIndexAsc();
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Auction e : entries) {
+            Map<String, Object> m = new HashMap<>();
             m.put("orderIndex", e.getOrderIndex());
             m.put("category", e.getCategory());
             m.put("player", playerService.convertPlayerToDTO(e.getPlayer()));
@@ -282,7 +254,6 @@ public class AuctionService {
         return result;
     }
 
-    // Move to next category and return next player
     @Transactional
     public PlayerDTO moveToNextCategory() {
         AuctionState state = getOrCreateAuctionState();
@@ -295,14 +266,11 @@ public class AuctionService {
             auctionStateRepository.save(state);
             return getNextPlayer();
         } else {
-            // All categories exhausted; try to requeue unsold
             requeueUnsoldToAuction();
-            // After requeue, try to get next player
             return getNextPlayer();
         }
     }
 
-    // Helper: create or fetch the single auction state
     private AuctionState getOrCreateAuctionState() {
         Optional<AuctionState> optional = auctionStateRepository.findFirstByOrderByIdDesc();
         if (optional.isPresent()) {
@@ -317,5 +285,4 @@ public class AuctionService {
         auctionStateRepository.save(s);
         return auctionStateRepository.findFirstByOrderByIdDesc().get();
     }
-
 }

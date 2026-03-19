@@ -9,5 +9,6 @@ import java.util.Optional;
 @Repository
 public interface SoldRepository extends JpaRepository<Sold, Long> {
     Optional<Sold> findByPlayerId(Long playerId);
+    int countByTeamId(Long teamId);
 }
 

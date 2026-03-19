@@ -18,7 +18,7 @@ public class Bid {
 
     @ManyToOne
     @JoinColumn(name = "player_id", nullable = false)
-    private Player player;
+    private RegisteredPlayer player;
 
     @ManyToOne
     @JoinColumn(name = "team_id", nullable = false)

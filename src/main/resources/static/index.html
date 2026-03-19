@@ -1,22 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home - Cricket Auction Management System</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
     <nav class="navbar">
         <div class="nav-container">
             <h1 class="logo">🏏 Cricket Auction</h1>
             <ul class="nav-links">
                 <li><a href="index.html" class="active">Home</a></li>
-                <li><a href="add-team.html">Add Team</a></li>
-                <li><a href="team-management.html">Navigate Teams</a></li>
-                <li><a href="auction.html">Auction</a></li>
-                <li><a href="player-registration.html">Register Player</a></li>
-                <li><a href="import-from-sheets.html">Import from Sheets</a></li>
+                <li><a href="team-management.html">Teams</a></li>
+                <li><a href="registered-players.html">Registered DB</a></li>
+                <li><a href="auction-pool.html">Auction DB</a></li>
+                <li><a href="sold-players.html">Sold DB</a></li>
+                <li><a href="unsold-players.html">Unsold DB</a></li>
+                <li><a href="auction.html" style="background: yellow; color: blue;">▶ Live Auction</a></li>
             </ul>
         </div>
     </nav>
@@ -27,7 +30,8 @@
             <h2>Cricket Auction Management System</h2>
             <p>Manage teams, players, and conduct live auctions seamlessly</p>
             <!-- Display the shared image from templates via the image endpoint -->
-            <img src="/images/img.png" alt="Cricket Auction" class="hero-image" style="max-width:300px;display:block;margin-top:12px;">
+            <img src="/images/img.png" alt="Cricket Auction" class="hero-image"
+                style="max-width:300px;display:block;margin-top:12px;">
         </div>
 
         <!-- Quick Action Section -->
@@ -36,13 +40,13 @@
                 <span class="icon">⚙️</span>
                 <span class="text">Create Team</span>
             </a>
-            <a href="player-registration.html" class="action-btn btn-register">
-                <span class="icon">👤</span>
-                <span class="text">Register Player</span>
-            </a>
             <a href="import-from-sheets.html" class="action-btn btn-import">
                 <span class="icon">📥</span>
                 <span class="text">Import Players (CSV)</span>
+            </a>
+            <a href="registered-players.html" class="action-btn btn-register">
+                <span class="icon">📊</span>
+                <span class="text">Player DBs</span>
             </a>
             <a href="auction.html" class="action-btn btn-auction">
                 <span class="icon">🎯</span>
@@ -147,12 +151,8 @@
                                     <span class="value amount-spent">₹${(spent).toLocaleString('en-IN')}</span>
                                 </div>
                             </div>
-
-                            <div class="budget-bar">
-                                <div class="progress-bar" style="width: ${percentageUsed}%"></div>
-                            </div>
                             <p class="percentage">${percentageUsed.toFixed(1)}% Budget Used</p>
-
+                            <br>
                             <a href="team-management.html" class="btn btn-secondary btn-small">View Details</a>
                         </div>
                     `;
@@ -178,5 +178,5 @@
         setInterval(loadTeamsOverview, 5000);
     </script>
 </body>
-</html>
 
+</html>

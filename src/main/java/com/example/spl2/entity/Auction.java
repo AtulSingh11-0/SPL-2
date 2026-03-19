@@ -4,12 +4,12 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "auction_entries")
+@Table(name = "auction")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AuctionEntry {
+public class Auction {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,7 +17,7 @@ public class AuctionEntry {
 
     @OneToOne
     @JoinColumn(name = "player_id", nullable = false, unique = true)
-    private Player player;
+    private RegisteredPlayer player;
 
     @Column(nullable = false)
     private Integer orderIndex; // sequential order in auction queue
@@ -25,4 +25,3 @@ public class AuctionEntry {
     @Column(nullable = false)
     private String category; // role/category to which the player belongs
 }
-

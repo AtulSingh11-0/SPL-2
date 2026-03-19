@@ -3,7 +3,6 @@ package com.example.spl2.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Table(name = "teams")
@@ -36,9 +35,6 @@ public class Team {
     private Double playerRetention1Money;
 
     private Double playerRetention2Money;
-
-    @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Player> players;
 
     private LocalDateTime createdAt;
 
